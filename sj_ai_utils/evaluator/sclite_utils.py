@@ -169,3 +169,12 @@ def parse_sclite_summary(output: str) -> dict[str, int | float]:
         }
     else:
         raise ValueError("Could not parse sclite summary output.")
+
+__all__ = [
+    "TRNFormat",
+    "sclite_trn_file",
+    "sclite_trn_run",
+    "concat_trn_file",
+    "make_trn_file",
+    "parse_sclite_summary",
+]

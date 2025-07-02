@@ -78,3 +78,9 @@ def make_all_ref_and_hyp(
         verbose and print(f"✅ {ref_trn} and {hyp_trn} created successfully.")
 
     verbose and print(f"✅ {destination} 경로에 REF/HYP .trn 모두 생성 완료")
+
+
+__all__ = [
+    "trans_txt_to_sclite_trn",
+    "make_all_ref_and_hyp",
+]

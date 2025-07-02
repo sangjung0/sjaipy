@@ -11,3 +11,8 @@ def segments_to_sclite_trn(id: str, segments: Iterable[Segment]) -> TRNFormat:
             segment.text.strip() for segment in segments if segment.text.strip()
         ),
     )
+
+
+__all__ = [
+    "segments_to_sclite_trn",
+]

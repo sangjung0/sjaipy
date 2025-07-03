@@ -1,12 +1,18 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 import re
+import sys
+import uuid
 from dataclasses import dataclass, field
 import subprocess
 from pathlib import Path
 
+from sj_utils.typing import deprecated
+
 if TYPE_CHECKING:
     pass
+
+TEMP_PATH = Path("/dev/shm") if sys.platform.startswith("linux") else Path("./tmp")
 
 
 @dataclass
@@ -28,6 +34,59 @@ def __subprocess_run(cmd: list[str], workdir: Path = None) -> None:
         print(f"Return code: {e.returncode}")
         print(f"Output: {e.output}")
         raise e
+
+
+def sclite_trn(
+    ref: Path | Iterable[TRNFormat],
+    hyp: Path | Iterable[TRNFormat],
+    output: Path = None,
+    ignore_case: bool = True,
+    output_format: list[str] = ["sum"],  # "sum", "prf", "dtl", "sgml"
+    verbose: bool = True,
+) -> str | None:
+    """sclite의 trn 평가를 수행하는 함수
+
+    Args:
+        ref (Path | Iterable[TRNFormat]): trn 평가의 정답 파일 경로 또는 TRNFormat 객체의 iterable
+        hyp (Path | Iterable[TRNFormat]): trn 평가의 예측 파일 경로 또는 TRNFormat 객체의 iterable
+        output (Path, optional): 결과를 저장할 파일 경로. None인 경우 stdout으로 출력됨.
+        ignore_case (bool, optional): 대소문자 구분 여부. Defaults to True.
+        output_format (list[str], optional): 출력 형식. Defaults to ["sum"].
+
+    Returns:
+        str | None: sclite 평가 결과 문자열. output이 None인 경우 None을 반환.
+    """
+    temp = []
+    try:
+        if not isinstance(ref, Path):
+            new_ref = TEMP_PATH / f"ref_{uuid.uuid4().hex}.trn"
+            make_trn_file(ref, new_ref)
+            ref = new_ref
+            temp.append(ref)
+        if not isinstance(hyp, Path):
+            new_hyp = TEMP_PATH / f"hyp_{uuid.uuid4().hex}.trn"
+            make_trn_file(hyp, new_hyp)
+            hyp = new_hyp
+            temp.append(hyp)
+
+        if not isinstance(output, Path):
+            return sclite_trn_run(
+                ref=ref,
+                hyp=hyp,
+                ignore_case=ignore_case,
+                output_format=output_format,
+            )
+        return sclite_trn_file(
+            ref=ref,
+            hyp=hyp,
+            output=output,
+            ignore_case=ignore_case,
+            output_format=output_format,
+            verbose=verbose,
+        )
+    finally:
+        for path in temp:
+            path.unlink(missing_ok=True)
 
 
 def sclite_trn_file(
@@ -99,6 +158,60 @@ def sclite_trn_run(
     return __subprocess_run(cmd)
 
 
+def make_trn_file(trn_iter: Iterable[TRNFormat], path: Path) -> None:
+    """trn 리스트를 받아 sclite의 trn 평가 파일을 생성하는 함수
+
+    Args:
+        trn_list (list[TRNFormat]): trn 평가 항목 리스트
+        path (Path): 생성 결과가 저장될 파일 경로
+    """
+
+    if isinstance(path, Path) and path.exists() and path.is_dir():
+        raise NotADirectoryError(f"Path {path} is a directory, not a file.")
+
+    dst = Path(path)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    with dst.open("w", encoding="utf-8", newline="\n") as fout:
+        for item in trn_iter:
+            fout.write(f"{item.text.strip().upper()} ({item.id})\n")
+
+
+def parse_sclite_summary(output: str) -> dict[str, int | float]:
+    """
+    sclite 의 sum 출력 파싱
+
+    Args:
+        output (str): sclite 명령의 전체 출력 문자열.
+
+    Returns:
+        dict[str, int | float]: 파싱된 결과를 포함하는 딕셔너리.
+    """
+
+    # 더 강력한 공백 및 구분자 처리
+    summary_pattern = re.compile(
+        r"\|\s*Sum/Avg\s*\|\s*(\d+)\s+(\d+)\s*\|\s*"
+        r"([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)"
+    )
+
+    match = summary_pattern.search(output)
+
+    if not match:
+        raise ValueError("Could not parse sclite summary output.")
+
+    return {
+        "num_sentences": int(match.group(1)),
+        "num_words": int(match.group(2)),
+        "correct_percent": float(match.group(3)),
+        "substitution_percent": float(match.group(4)),
+        "deletion_percent": float(match.group(5)),
+        "insertion_percent": float(match.group(6)),
+        "wer_percent": float(match.group(7)),
+        "sentence_error_percent": float(match.group(8)),
+    }
+
+
+@deprecated
 def concat_trn_file(source: list[Path], dest: Path) -> None:
     """trn 리스트를 받아 하나의 trn 파일로 합치는 함수
 
@@ -120,58 +233,9 @@ def concat_trn_file(source: list[Path], dest: Path) -> None:
                 fout.write(fin.read().replace("\r\n", "\n").replace("\r", "\n"))
 
 
-def make_trn_file(trn_list: list[TRNFormat], path: Path) -> None:
-    """trn 리스트를 받아 sclite의 trn 평가 파일을 생성하는 함수
-
-    Args:
-        trn_list (list[TRNFormat]): trn 평가 항목 리스트
-        path (Path): 생성 결과가 저장될 파일 경로
-    """
-
-    if isinstance(path, Path) and path.exists() and path.is_dir():
-        raise NotADirectoryError(f"Path {path} is a directory, not a file.")
-
-    dst = Path(path)
-    dst.parent.mkdir(parents=True, exist_ok=True)
-
-    with dst.open("w", encoding="utf-8", newline="\n") as fout:
-        for item in trn_list:
-            fout.write(f"{item.text.strip().upper()} ({item.id})\n")
-
-
-def parse_sclite_summary(output: str) -> dict[str, int | float]:
-    """
-    sclite 의 sum 출력 파싱
-
-    Args:
-        output (str): sclite 명령의 전체 출력 문자열.
-
-    Returns:
-        dict[str, int | float]: 파싱된 결과를 포함하는 딕셔너리.
-    """
-
-    summary_pattern = re.compile(
-        r"Sum/Avg\s+\|\s*(\d+)\s*(\d+)\s+\|\s*([\d.]+)\s*([\d.]+)\s*([\d.]+)\s*([\d.]+)\s*([\d.]+)\s*([\d.]+)"
-    )
-
-    match = summary_pattern.search(output)
-
-    if match:
-        return {
-            "num_sentences": int(match.group(1)),
-            "num_words": int(match.group(2)),
-            "correct_percent": float(match.group(3)),
-            "substitution_percent": float(match.group(4)),
-            "deletion_percent": float(match.group(5)),
-            "insertion_percent": float(match.group(6)),
-            "wer_percent": float(match.group(7)),  # WER을 명확히 명시
-            "sentence_error_percent": float(match.group(8)),
-        }
-    else:
-        raise ValueError("Could not parse sclite summary output.")
-
 __all__ = [
     "TRNFormat",
+    "sclite_trn",
     "sclite_trn_file",
     "sclite_trn_run",
     "concat_trn_file",

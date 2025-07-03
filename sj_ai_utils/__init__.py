@@ -2,5 +2,6 @@
 
 from . import asr
 from . import datasets
+from . import evaluator
 
-__all__ = ["asr", "datasets"]
+__all__ = ["asr", "datasets", "evaluator"]

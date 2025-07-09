@@ -1,0 +1,6 @@
+faster_whisper
+
+# torch
+torch
+torchvision
+torchaudio

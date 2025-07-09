@@ -1,21 +1,23 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 from pathlib import Path
 
 from sj_ai_utils.evaluator.sclite_utils import TRNFormat, make_trn_file
 
 if TYPE_CHECKING:
-    pass
+    from typing import Callable
 
 
-def trans_txt_to_sclite_trn(src: Path) -> list[TRNFormat]:
+def trans_txt_to_sclite_trn(
+    src: Path, preprocess: Callable[[str], str] = lambda x: x
+) -> list[TRNFormat]:
     result = []
     with src.open("r", encoding="utf-8") as fin:
         for line in fin:
             if not line.strip():
                 continue
             uid, *words = line.rstrip().split()
-            sent = " ".join(words).upper()
+            sent = preprocess(" ".join(words))
             result.append(TRNFormat(id=uid, text=sent))
     return result
 
@@ -83,6 +85,7 @@ def make_all_ref_and_hyp(
 def search_all_ref_and_hyp(
     source: Path,
     transcribe: Callable[[Path], TRNFormat],
+    preprocess: Callable[[str], str] = lambda x: x,
     max_count: int = -1,
     verbose: bool = True,
 ) -> dict[str, dict[str, list[TRNFormat]]]:
@@ -100,7 +103,7 @@ def search_all_ref_and_hyp(
 
     if not source.exists() or not source.is_dir():
         print(f"Source path {source} does not exist or is not a directory.")
-        return
+        return {}
 
     result = {}
     count = 0
@@ -119,7 +122,7 @@ def search_all_ref_and_hyp(
         count += 1
         trans_txt = trans_files[0]
 
-        ref_items = trans_txt_to_sclite_trn(trans_txt)
+        ref_items = trans_txt_to_sclite_trn(trans_txt, preprocess=preprocess)
         hyp_items = [transcribe(flac) for flac in sorted(dirpath.glob("*.flac"))]
 
         result[trans_txt.stem] = {"ref": ref_items, "hyp": hyp_items}

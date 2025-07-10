@@ -20,7 +20,7 @@ class Checkpoint:
             self.best = loss
             self.save()
 
-    def save(self):
+    def save(self, name:str = "checkpoint"):
         torch.save(
             {
                 "epoch": self.epoch,
@@ -29,7 +29,7 @@ class Checkpoint:
                 "scheduler_state_dict": self.scheduler.state_dict(),
                 "loss": self.best,
             },
-            self.path / f"checkpoint_epoch_{self.epoch}_{int(time.time())}.pt",
+            self.path / f"{name}_epoch_{self.epoch}_{int(time.time())}.pt",
         )
 
     @staticmethod

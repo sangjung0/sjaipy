@@ -29,18 +29,19 @@ class Checkpoint:
                 "scheduler_state_dict": self.scheduler.state_dict(),
                 "loss": self.best,
             },
-            self.path / f"{name}_epoch_{self.epoch}_{int(time.time())}.pt",
+            self.path / f"{name}.pt",
         )
 
     @staticmethod
     def load(
         path: Path,
+        pt_path: Path,
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler._LRScheduler,
         device: torch.device = torch.device("cpu"),
     ):
-        ckpt = torch.load(path, map_location=device)
+        ckpt = torch.load(pt_path, map_location=device)
         model.load_state_dict(ckpt["model_state_dict"])
         optimizer.load_state_dict(ckpt["optimizer_state_dict"])
         scheduler.load_state_dict(ckpt["scheduler_state_dict"])

@@ -90,7 +90,7 @@ def search_all_ref_and_hyp(
             break
         count += 1
 
-        txt = search_file_from_dir(data_path, "o")
+        txt = search_file_from_dir(data_path, "v")
         ref = trans_txt_to_sclite_trn(txt, preprocess=preprocess)
 
         mp4 = search_file_from_dir(data_path, "mp4")

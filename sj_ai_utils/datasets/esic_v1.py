@@ -18,6 +18,29 @@ def trans_txt_to_sclite_trn(
 
 
 def search_file_from_dir(dir: Path, file_type: str) -> Path:
+    """Search for a specific file type in the given directory.
+
+    Args:
+        dir (Path): The directory to search in.
+        file_type (str): The type of file to search for. Valid types are:
+            - "txt": Manual translation by the interpreter.
+            - "vert+ts": Contains start time, end time, original word, symbol-included word,
+              sentence segment number, and other tags.
+            - "o": Refined sentence with special tags removed.
+            - "o+ts": Refined sentence with special tags removed and timestamps.
+            - "v": Lowercase, punctuation removed, numbers as words, tags removed,
+              incomplete utterances included.
+            - "pv": Includes uppercase and punctuation, numbers as numbers, tags removed,
+              incomplete utterances included.
+            - "mp4": Original video.
+
+    Raises:
+        ValueError: If the file type is invalid.
+        FileNotFoundError: If the file is not found.
+
+    Returns:
+        Path: The path to the found file.
+    """
     FILE_TYPE = {
         "txt": {"file": "en.OSt.man.txt", "explain": "통역사의 수동 번역"},
         "vert+ts": {

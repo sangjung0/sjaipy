@@ -101,27 +101,14 @@ def search_all_ref_and_hyp(
         dict[str, dict[str, list[TRNFormat]]]: txt 파일 이름을 키로 하고, "ref"와 "hyp" 키를 가진 딕셔너리를 값으로 가지는 딕셔너리
     """
 
-    if not source.exists() or not source.is_dir():
-        print(f"Source path {source} does not exist or is not a directory.")
-        return {}
+    data_paths = search_all_data(source, verbose=verbose)
 
     result = {}
-    count = 0
-    for dirpath in (p for p in source.rglob("*") if p.is_dir()):
-        if max_count != -1 and count >= max_count:
+    for idx, dirpath in enumerate(data_paths):
+        if max_count != -1 and idx >= max_count:
             break
 
-        trans_files = list(dirpath.glob("*.trans.txt"))
-        if len(trans_files) == 0:
-            continue
-        elif len(trans_files) > 1:
-            verbose and print(
-                f"Skipping {dirpath} - expected one trans file, found {len(trans_files)}"
-            )
-            continue
-        count += 1
-        trans_txt = trans_files[0]
-
+        trans_txt = next(dirpath.glob("*.trans.txt"))
         ref_items = trans_txt_to_sclite_trn(trans_txt, preprocess=preprocess)
         hyp_items = [transcribe(flac) for flac in sorted(dirpath.glob("*.flac"))]
 
@@ -130,6 +117,27 @@ def search_all_ref_and_hyp(
         verbose and print(f"✅ {trans_txt.stem} read successfully.")
 
     return result
+
+
+def search_all_data(src: Path, verbose: bool = True) -> list[Path]:
+    if not src.exists() or not src.is_dir():
+        verbose and print(f"Source path {src} does not exist or is not a directory.")
+        return []
+
+    src_folder = []
+
+    for dirpath in (p for p in src.rglob("*") if p.is_dir()):
+        trans_files = list(dirpath.glob("*.trans.txt"))
+        if len(trans_files) == 0:
+            continue
+        elif len(trans_files) > 1:
+            verbose and print(
+                f"Skipping {dirpath} - expected one trans file, found {len(trans_files)}"
+            )
+            continue
+        src_folder.append(dirpath)
+
+    return src_folder
 
 
 __all__ = [

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def trans_txt_to_sclite_trn(
-    src: Path, preprocess: Callable[[str], str] = lambda x: x
+    src: Path, normalizer: Callable[[str], str] = lambda x: x
 ) -> list[TRNFormat]:
     result = []
     with src.open("r", encoding="utf-8") as fin:
@@ -17,7 +17,7 @@ def trans_txt_to_sclite_trn(
             if not line.strip():
                 continue
             uid, *words = line.rstrip().split()
-            sent = preprocess(" ".join(words))
+            sent = normalizer(" ".join(words))
             result.append(TRNFormat(id=uid, text=sent))
     return result
 
@@ -26,6 +26,7 @@ def make_all_ref_and_hyp(
     source: Path,
     destination: Path,
     transcribe: Callable[[Path], TRNFormat],
+    normalizer: Callable[[str], str] = lambda x: x,
     max_count: int = -1,
     verbose: bool = True,
 ) -> None:
@@ -37,29 +38,18 @@ def make_all_ref_and_hyp(
         transcribe (Callable[[np.ndarray, int], list[TRN]]): 음성 데이터를 받아 list[TRN] 형태로 변환하는 함수
     """
 
-    if not source.exists() or not source.is_dir():
-        print(f"Source path {source} does not exist or is not a directory.")
-        return
     if destination.exists() and not destination.is_dir():
         print(f"Destination path {destination} is not a directory.")
         return
+
+    data_paths = search_all_data(source, verbose=verbose)
     destination.mkdir(parents=True, exist_ok=True)
 
-    count = 0
-    for dirpath in (p for p in source.rglob("*") if p.is_dir()):
-        if max_count != -1 and count >= max_count:
+    for idx, dirpath in enumerate(data_paths):
+        if max_count != -1 and idx >= max_count:
             break
 
-        trans_files = list(dirpath.glob("*.trans.txt"))
-        if len(trans_files) == 0:
-            continue
-        elif len(trans_files) > 1:
-            verbose and print(
-                f"Skipping {dirpath} - expected one trans file, found {len(trans_files)}"
-            )
-            continue
-        count += 1
-        trans_txt = trans_files[0]
+        trans_txt = next(dirpath.glob("*.train.txt"))
 
         # 목적지 경로 만들기
         rel_dir = dirpath.relative_to(source)
@@ -70,11 +60,14 @@ def make_all_ref_and_hyp(
         ref_trn = dst_dir / (trans_txt.stem.replace(".trans", "") + ".ref.trn")
         hyp_trn = dst_dir / (trans_txt.stem.replace(".trans", "") + ".hyp.trn")
 
-        ref_items = trans_txt_to_sclite_trn(trans_txt)
+        ref_items = trans_txt_to_sclite_trn(trans_txt, normalizer=normalizer)
         make_trn_file(ref_items, ref_trn)
 
         # ── 2) 같은 폴더의 flac 순차 변환 ──────────────────
-        hyp_items = [transcribe(flac) for flac in sorted(dirpath.glob("*.flac"))]
+        hyp_items = [
+            TRNFormat(id=flac.stem, text=normalizer(transcribe(flac)))
+            for flac in sorted(dirpath.glob("*.flac"))
+        ]
         make_trn_file(hyp_items, hyp_trn)
 
         verbose and print(f"✅ {ref_trn} and {hyp_trn} created successfully.")
@@ -84,8 +77,8 @@ def make_all_ref_and_hyp(
 
 def search_all_ref_and_hyp(
     source: Path,
-    transcribe: Callable[[Path], TRNFormat],
-    preprocess: Callable[[str], str] = lambda x: x,
+    transcribe: Callable[[Path], str],
+    normalizer: Callable[[str], str] = lambda x: x,
     max_count: int = -1,
     verbose: bool = True,
 ) -> dict[str, dict[str, list[TRNFormat]]]:
@@ -109,8 +102,11 @@ def search_all_ref_and_hyp(
             break
 
         trans_txt = next(dirpath.glob("*.trans.txt"))
-        ref_items = trans_txt_to_sclite_trn(trans_txt, preprocess=preprocess)
-        hyp_items = [transcribe(flac) for flac in sorted(dirpath.glob("*.flac"))]
+        ref_items = trans_txt_to_sclite_trn(trans_txt, normalizer=normalizer)
+        hyp_items = [
+            TRNFormat(id=flac.stem, text=normalizer(transcribe(flac)))
+            for flac in sorted(dirpath.glob("*.flac"))
+        ]
 
         result[trans_txt.stem] = {"ref": ref_items, "hyp": hyp_items}
 

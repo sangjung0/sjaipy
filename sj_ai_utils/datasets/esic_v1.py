@@ -8,15 +8,6 @@ if TYPE_CHECKING:
     from typing import Callable
 
 
-def trans_txt_to_sclite_trn(
-    src: Path, preprocess: Callable[[str], str] = lambda x: x
-) -> TRNFormat:
-    return TRNFormat(
-        id=src.parent.stem + "_" + src.stem,
-        text=preprocess(src.read_text(encoding="utf-8")),
-    )
-
-
 def search_file_from_dir(dir: Path, file_type: str) -> Path:
     """Search for a specific file type in the given directory.
 
@@ -80,13 +71,8 @@ def search_file_from_dir(dir: Path, file_type: str) -> Path:
 def search_all_data(source: Path, verbose=True) -> list[Path]:
     data_dirs = []
     for dirpath in (p for p in source.rglob("*") if p.is_dir()):
-        video = list(dirpath.glob("*.mp4"))
-        if len(video) == 0:
-            continue
-        elif len(video) > 1:
-            verbose and print(
-                f"Skipping {dirpath} with multiple videos, found {len(video)}"
-            )
+        video = dirpath / "en.OS.man-diar.mp4"
+        if not video.exists():
             continue
         data_dirs.append(dirpath)
     return data_dirs
@@ -95,10 +81,10 @@ def search_all_data(source: Path, verbose=True) -> list[Path]:
 def search_all_ref_and_hyp(
     source: Path,
     transcribe: Callable[[Path], str],
-    preprocess: Callable[[str], str] = lambda x: x,
+    normalizer: Callable[[str], str] = lambda x: x,
     max_count: int = -1,
     verbose: bool = True,
-) -> dict[str, dict[str, TRNFormat]]:
+) -> dict[str, dict[str, list[TRNFormat]]]:
 
     if not source.exists() or not source.is_dir():
         print(f"Source path {source} does not exist or is not a directory.")
@@ -113,26 +99,27 @@ def search_all_ref_and_hyp(
             break
         count += 1
 
-        txt = search_file_from_dir(data_path, "v")
-        ref = trans_txt_to_sclite_trn(txt, preprocess=preprocess)
+        key = data_path.parent.stem + "_" + data_path.stem
+        src = search_file_from_dir(data_path, "v")
+        txt = src.read_text(encoding="utf-8")
+        txt = normalizer(txt)
+        ref = TRNFormat(id=key, text=txt)
 
         mp4 = search_file_from_dir(data_path, "mp4")
-        pred = transcribe(mp4)
-        hyp = TRNFormat(
-            id=ref.id,
-            text=pred,
-        )
+        pred_txt = transcribe(mp4)
+        pred_txt = normalizer(pred_txt)
+        hyp = TRNFormat(id=key, text=pred_txt)
 
-        result[data_path.stem] = {
-            "ref": ref,
-            "hyp": hyp,
+        result[key] = {
+            "ref": [ref],
+            "hyp": [hyp],
         }
 
     return result
 
 
 __all__ = [
-    "trans_txt_to_sclite_trn",
+    "txt_to_sclite_trn",
     "search_file_from_dir",
     "search_all_data",
     "search_all_ref_and_hyp",

@@ -69,6 +69,13 @@ def search_file_from_dir(dir: Path, file_type: str) -> Path:
 
 
 def search_all_data(source: Path, verbose=True) -> list[Path]:
+    if not source.exists():
+        verbose and print(f"Source path {source} does not exist.")
+        return []
+    if not source.is_dir():
+        verbose and print(f"Source path {source} is not a directory.")
+        return []
+
     data_dirs = []
     for dirpath in (p for p in source.rglob("*") if p.is_dir()):
         video = dirpath / "en.OS.man-diar.mp4"
@@ -78,26 +85,24 @@ def search_all_data(source: Path, verbose=True) -> list[Path]:
     return data_dirs
 
 
-def search_all_ref_and_hyp(
-    source: Path,
+def make_ref_and_hyp(
+    data_paths: list[Path],
     transcribe: Callable[[Path], str],
     normalizer: Callable[[str], str] = lambda x: x,
     max_count: int = -1,
     verbose: bool = True,
 ) -> dict[str, dict[str, list[TRNFormat]]]:
-
-    if not source.exists() or not source.is_dir():
-        print(f"Source path {source} does not exist or is not a directory.")
+    if not data_paths:
+        verbose and print("No data paths provided.")
+        return {}
+    if not all(p.exists() for p in data_paths):
+        verbose and print("One or more data paths do not exist.")
         return {}
 
     result = {}
-    count = 0
-
-    dirs = search_all_data(source, verbose=verbose)
-    for data_path in dirs:
-        if max_count != -1 and count >= max_count:
+    for i, data_path in enumerate(data_paths):
+        if max_count != -1 and i >= max_count:
             break
-        count += 1
 
         key = data_path.parent.stem + "_" + data_path.stem
         src = search_file_from_dir(data_path, "v")
@@ -122,5 +127,5 @@ __all__ = [
     "txt_to_sclite_trn",
     "search_file_from_dir",
     "search_all_data",
-    "search_all_ref_and_hyp",
+    "make_ref_and_hyp",
 ]

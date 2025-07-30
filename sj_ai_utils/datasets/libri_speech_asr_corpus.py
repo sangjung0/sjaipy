@@ -22,7 +22,7 @@ def trans_txt_to_sclite_trn(
     return result
 
 
-def make_all_ref_and_hyp(
+def generate_all_ref_and_hyp_file(
     source: Path,
     destination: Path,
     transcribe: Callable[[Path], TRNFormat],
@@ -75,30 +75,23 @@ def make_all_ref_and_hyp(
     verbose and print(f"✅ {destination} 경로에 REF/HYP .trn 모두 생성 완료")
 
 
-def search_all_ref_and_hyp(
-    source: Path,
+def make_ref_and_hyp(
+    data_paths: list[Path],
     transcribe: Callable[[Path], str],
     normalizer: Callable[[str], str] = lambda x: x,
     max_count: int = -1,
     verbose: bool = True,
 ) -> dict[str, dict[str, list[TRNFormat]]]:
-    """source 폴더 안에 있는 모든 텍스트 파일을 읽고 TRNFormat 리스트로 변환하며, *.flac 파일을 찾아 transcribe 함수를 통해 음성 데이터를 변환하여 TRNFormat 리스트로 반환함. 각 쌍의 결과를 딕셔너리 형태로 반환함.
-
-    Args:
-        source (Path): 폴더 경로
-        transcribe (Callable[[Path], TRNFormat]): 음성 데이터를 받아 TRNFormat 형태로 변환하는 함수
-        max_count (int, optional): 최대 폴더 개수. -1이면 제한 없음. Defaults to -1.
-        verbose (bool, optional): 진행 상황을 출력할지 여부. Defaults to True.
-
-    Returns:
-        dict[str, dict[str, list[TRNFormat]]]: txt 파일 이름을 키로 하고, "ref"와 "hyp" 키를 가진 딕셔너리를 값으로 가지는 딕셔너리
-    """
-
-    data_paths = search_all_data(source, verbose=verbose)
+    if not data_paths:
+        verbose and print("No data paths provided.")
+        return {}
+    if not all(p.exists() for p in data_paths):
+        verbose and print("One or more data paths do not exist.")
+        return {}
 
     result = {}
-    for idx, dirpath in enumerate(data_paths):
-        if max_count != -1 and idx >= max_count:
+    for i, dirpath in enumerate(data_paths):
+        if max_count != -1 and i >= max_count:
             break
 
         trans_txt = next(dirpath.glob("*.trans.txt"))
@@ -115,14 +108,16 @@ def search_all_ref_and_hyp(
     return result
 
 
-def search_all_data(src: Path, verbose: bool = True) -> list[Path]:
-    if not src.exists() or not src.is_dir():
-        verbose and print(f"Source path {src} does not exist or is not a directory.")
+def search_all_data(source: Path, verbose: bool = True) -> list[Path]:
+    if not source.exists():
+        verbose and print(f"Source path {source} does not exist.")
+        return []
+    if not source.is_dir():
+        verbose and print(f"Source path {source} is not a directory.")
         return []
 
-    src_folder = []
-
-    for dirpath in (p for p in src.rglob("*") if p.is_dir()):
+    data_dirs = []
+    for dirpath in (p for p in source.rglob("*") if p.is_dir()):
         trans_files = list(dirpath.glob("*.trans.txt"))
         if len(trans_files) == 0:
             continue
@@ -131,13 +126,14 @@ def search_all_data(src: Path, verbose: bool = True) -> list[Path]:
                 f"Skipping {dirpath} - expected one trans file, found {len(trans_files)}"
             )
             continue
-        src_folder.append(dirpath)
+        data_dirs.append(dirpath)
 
-    return src_folder
+    return data_dirs
 
 
 __all__ = [
     "trans_txt_to_sclite_trn",
-    "make_all_ref_and_hyp",
-    "search_all_ref_and_hyp",
+    "generate_all_ref_and_hyp_file",
+    "make_ref_and_hyp",
+    "search_all_data",
 ]

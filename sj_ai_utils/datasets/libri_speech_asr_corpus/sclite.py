@@ -4,6 +4,7 @@ from pathlib import Path
 
 from sj_ai_utils.evaluator.sclite_utils import TRNFormat
 from sj_ai_utils.datasets.libri_speech_asr_corpus.file_type import X, Y
+from sj_ai_utils.datasets.libri_speech_asr_corpus.service import select_file_from_dir
 
 if TYPE_CHECKING:
     from typing import Callable
@@ -39,11 +40,11 @@ def generate_trn(
         if max_count != -1 and i >= max_count:
             break
 
-        trans_txt = next(dirpath.glob(Y))
+        trans_txt = select_file_from_dir(dirpath, Y)
         ref_items = trans_txt_to_sclite_trn(trans_txt, normalizer=normalizer)
         hyp_items = [
             TRNFormat(id=flac.stem, text=normalizer(transcribe(flac)))
-            for flac in sorted(dirpath.glob(X))
+            for flac in sorted(select_file_from_dir(dirpath, X))
         ]
 
         result[trans_txt.stem] = {"ref": ref_items, "hyp": hyp_items}
@@ -55,3 +56,4 @@ __all__ = [
     "trans_txt_to_sclite_trn",
     "generate_trn",
 ]
+

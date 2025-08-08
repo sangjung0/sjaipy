@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
+
 import re
 import sys
 import uuid
-from dataclasses import dataclass, field
 import subprocess
+
+from dataclasses import dataclass, field
+from typing import Iterable
 from pathlib import Path
 
 from sj_utils.typing import deprecated

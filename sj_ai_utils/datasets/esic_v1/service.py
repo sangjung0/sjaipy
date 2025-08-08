@@ -2,11 +2,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from pathlib import Path
+from collections.abc import Container
 
 from sj_ai_utils.datasets.esic_v1.file_type import FILE_TYPE
 
 if TYPE_CHECKING:
-    from collections.abc import Container
+    pass
 
 
 def select_file_from_dir(dir: Path, file_type: str) -> Path:

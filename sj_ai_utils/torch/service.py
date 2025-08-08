@@ -16,3 +16,6 @@ def base64_to_tensor(encoded_str: str) -> torch.Tensor | None:
         return None
     buffer = io.BytesIO(base64.b64decode(encoded_str.encode("utf-8")))
     return torch.load(buffer)
+
+
+__all__ = ["tensor_to_base64", "base64_to_tensor"]

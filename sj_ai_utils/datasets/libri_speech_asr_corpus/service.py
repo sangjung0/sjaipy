@@ -53,7 +53,4 @@ def search_dirs(source: Path, excludes: Container[str] = []) -> list[Path]:
     return data_dirs
 
 
-__all__ = [
-    "select_file_from_dir",
-    "search_dirs",
-]
+__all__ = ["select_file_from_dir", "search_dirs"]

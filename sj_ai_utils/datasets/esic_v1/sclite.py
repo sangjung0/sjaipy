@@ -1,13 +1,15 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 from pathlib import Path
+from typing import Callable
 
 from sj_ai_utils.evaluator.sclite_utils import TRNFormat
 from sj_ai_utils.datasets.esic_v1.service import select_file_from_dir
 from sj_ai_utils.datasets.esic_v1.file_type import MP4, VERBATIM, ORTO
 
 if TYPE_CHECKING:
-    from typing import Callable
+    pass
 
 
 def generate_trn(

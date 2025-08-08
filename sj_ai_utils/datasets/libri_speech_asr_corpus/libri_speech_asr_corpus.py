@@ -188,9 +188,4 @@ class LibriSpeechASRCorpus:
         )
 
 
-__all__ = [
-    "trans_txt_to_sclite_trn",
-    "generate_all_ref_and_hyp_file",
-    "make_ref_and_hyp",
-    "search_all_data",
-]
+__all__ = ["LibriSpeechASRCorpus"]

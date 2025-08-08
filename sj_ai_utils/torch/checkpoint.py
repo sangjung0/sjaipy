@@ -104,3 +104,6 @@ class Checkpoint:
             epoch=ckpt["epoch"],
             best=ckpt["loss"],
         )
+
+
+__all__ = ["Checkpoint"]

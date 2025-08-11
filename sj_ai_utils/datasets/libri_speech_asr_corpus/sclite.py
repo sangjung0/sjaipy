@@ -9,7 +9,7 @@ from typing import Callable, Generator
 from functools import lru_cache
 
 from sj_ai_utils.evaluator.sclite_utils import TRNFormat
-from sj_ai_utils.datasets.libri_speech_asr_corpus.file_type import X, Y
+from sj_ai_utils.datasets.libri_speech_asr_corpus.file_type import Y
 from sj_ai_utils.datasets.libri_speech_asr_corpus.service import select_file_from_dir
 
 if TYPE_CHECKING:
@@ -42,7 +42,8 @@ def load_data(
         if not path.is_dir():
             raise ValueError(f"Data path {path} should be a directory.")
 
-        key_data = trans_txt_to_key_data(path)
+        trans_txt = select_file_from_dir(path, Y)
+        key_data = trans_txt_to_key_data(trans_txt)
         for key, data in key_data:
             flac = path / f"{key}.flac"
             if not flac.exists():

@@ -1,4 +1,5 @@
 faster_whisper
+datasets==3.6.0
 
 # torch
 torch

@@ -5,6 +5,7 @@ import re
 import sys
 import uuid
 import subprocess
+import numpy as np
 
 from dataclasses import dataclass, field
 from typing import Iterable
@@ -24,6 +25,18 @@ class TRNFormat:
     text: str
     # id: str = field(...)
     # text: str = field(...)
+
+
+def compare_trn_format(a: list[TRNFormat], b: list[TRNFormat]) -> bool:
+    if len(a) != len(b):
+        return False
+    a_ids = [item.id for item in a]
+    b_ids = [item.id for item in b]
+
+    for a_id, b_id in zip(sorted(a_ids), sorted(b_ids)):
+        if a_id != b_id:
+            return False
+    return True
 
 
 def __subprocess_run(cmd: list[str], workdir: Path = None) -> None:
@@ -238,6 +251,7 @@ def concat_trn_file(source: list[Path], dest: Path) -> None:
 
 __all__ = [
     "TRNFormat",
+    "compare_trn_format",
     "sclite_trn",
     "sclite_trn_file",
     "sclite_trn_run",

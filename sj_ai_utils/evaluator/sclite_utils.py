@@ -131,6 +131,7 @@ def sclite_trn_file(
     output.mkdir(parents=True, exist_ok=True)
 
     cmd = [
+        "sctk",
         "sclite",
         "-r",
         str(ref.resolve()),
@@ -161,6 +162,7 @@ def sclite_trn_run(
     """
 
     cmd = [
+        "sctk",
         "sclite",
         "-r",
         str(ref.resolve()),

@@ -25,7 +25,7 @@ def load_data(
 
     if sample_size < 0:
         sample_size = len(dataset)
-    if rng is None:
+    if rng is None or sample_size == len(dataset):
         dataset = dataset.select(range(sample_size))
     else:
         index = rng.choice(len(dataset), size=sample_size, replace=False)

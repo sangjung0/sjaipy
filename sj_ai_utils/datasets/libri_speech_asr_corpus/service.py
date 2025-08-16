@@ -85,7 +85,7 @@ def load_data(
 ) -> Generator[tuple[np.ndarray, str, str, Path], None, None]:
     if sample_size < 0:
         sample_size = len(data_paths)
-    if rng is None:
+    if rng is None or sample_size == len(data_paths):
         data_paths = data_paths[:sample_size]
     else:
         data_paths = rng.choice(data_paths, size=sample_size, replace=False)
@@ -111,7 +111,7 @@ def load_data_v2(
 ) -> Generator[tuple[np.ndarray, str, str, Path], None, None]:
     if sample_size < 0:
         sample_size = len(data)
-    if rng is None:
+    if rng is None or sample_size == len(data):
         data = data[:sample_size]
     else:
         data = rng.choice(data, size=sample_size, replace=False)

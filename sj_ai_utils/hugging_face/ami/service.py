@@ -29,7 +29,7 @@ def load_data(
 
     for data in dataset:
         _id = data["audio_id"][-255:]
-        audio = data["audio"]["array"]
+        audio = data["audio"]["array"].astype(np.float32)
         y = data["text"]
         path = Path(data["audio"]["path"])
         key = Path(*path.parts[-2:-1]) / path.stem

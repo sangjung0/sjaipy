@@ -33,7 +33,7 @@ def load_data(
 
     for data in dataset:
         _id = normalize_text_only_en(data["id"])
-        audio = data["audio"]["array"]
+        audio = data["audio"]["array"].astype(np.float32)
         y = data["text"]
         path = Path(data["file"])
         key = Path(*path.parts[-2:-1]) / path.stem / _id

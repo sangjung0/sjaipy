@@ -4,26 +4,34 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from pathlib import Path
-from typing import Generator
-from datasets import Dataset, Audio
+from typing import Callable
+from datasets import Dataset
+
+from sj_ai_utils.evaluator.sclite_utils import TRNFormat
+from sj_ai_utils.hugging_face.sclite import generate_ref_and_hyp as grah
+from sj_ai_utils.hugging_face.vox_populi.service import load_data
 
 if TYPE_CHECKING:
     pass
 
 
-def load_data(
-    dataset: Dataset, sr: int
-) -> Generator[tuple[np.ndarray, str, str, Path], None, None]:
+def generate_ref_and_hyp(
+    datasets: Dataset,
+    transcriber: Callable[[np.ndarray, Path], str],
+    normalizer: Callable[[str], str] = lambda x: x,
+    sr: int = 16_000,
+    size: int = -1,
+    rng: np.random.Generator | np.random.RandomState = np.random,
+) -> dict[str, dict[str, list[TRNFormat]]]:
+    return grah(
+        data_paths=datasets,
+        transcriber=transcriber,
+        data_loader=load_data,
+        normalizer=normalizer,
+        sr=sr,
+        size=size,
+        rng=rng,
+    )
 
-    dataset.cast_column("audio", Audio(sampling_rate=sr))
 
-    for data in dataset:
-        key = data["audio_id"]
-        audio = data["audio"]["array"]
-        y = data["text"]
-        path = Path(data["audio"]["path"])
-
-        yield audio, key, y, path
-
-
-__all__ = ["load_data"]
+__all__ = ["generate_ref_and_hyp"]

@@ -21,7 +21,7 @@ def generate_ref_and_hyp(
     normalizer: Callable[[str], str] = lambda x: x,
     sr: int = 16_000,
     size: int = -1,
-    rng: np.random.Generator | np.random.RandomState = np.random,
+    rng: np.random.Generator | np.random.RandomState | None = None,
 ) -> dict[str, dict[str, list[TRNFormat]]]:
     return grah(
         data_paths=datasets,

@@ -7,8 +7,7 @@ from pathlib import Path
 from typing import Callable
 from datasets import Dataset
 
-from sj_ai_utils.evaluator.sclite_utils import TRNFormat
-from sj_ai_utils.hugging_face.sclite import generate_ref_and_hyp as grah
+from sj_ai_utils.evaluator.sclite_utils import TRNFormat, generate_ref_and_hyp as grah
 from sj_ai_utils.hugging_face.ami.service import load_data
 
 if TYPE_CHECKING:

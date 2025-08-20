@@ -8,7 +8,7 @@ import subprocess
 import numpy as np
 
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Iterable, Callable, Generator, Any
 from pathlib import Path
 
 from sj_utils.typing import deprecated
@@ -251,6 +251,34 @@ def concat_trn_file(source: list[Path], dest: Path) -> None:
                 fout.write(fin.read().replace("\r\n", "\n").replace("\r", "\n"))
 
 
+def generate_ref_and_hyp(
+    datasets: Any,
+    transcriber: Callable[[np.ndarray, Path], str],
+    data_loader: Callable[
+        [list[Path], int, int, np.random.Generator | np.random.RandomState],
+        Generator[tuple[np.ndarray, str, str, Path], None, None],
+    ],
+    normalizer: Callable[[str], str] = lambda x: x,
+    sr: int = 16_000,
+    size: int = -1,
+    rng: np.random.Generator | np.random.RandomState | None = None,
+) -> dict[str, dict[str, list[TRNFormat]]]:
+    result_ref = []
+    result_hyp = []
+    for audio, key, y, path in data_loader(datasets, sr=sr, sample_size=size, rng=rng):
+        txt = normalizer(y)
+        ref = TRNFormat(id=key, text=txt)
+
+        pred = transcriber(audio, path)
+        pred = normalizer(pred)
+        hyp = TRNFormat(id=key, text=pred)
+
+        result_ref.append(ref)
+        result_hyp.append(hyp)
+
+    return result_ref, result_hyp
+
+
 __all__ = [
     "TRNFormat",
     "compare_trn_format",
@@ -260,4 +288,5 @@ __all__ = [
     "concat_trn_file",
     "make_trn_file",
     "parse_sclite_summary",
+    "generate_ref_and_hyp",
 ]

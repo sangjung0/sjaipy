@@ -6,8 +6,7 @@ import numpy as np
 from pathlib import Path
 from typing import Callable
 
-from sj_ai_utils.datasets.sclite import generate_ref_and_hyp as grah
-from sj_ai_utils.evaluator.sclite_utils import TRNFormat
+from sj_ai_utils.evaluator.sclite_utils import TRNFormat, generate_ref_and_hyp as grah
 from sj_ai_utils.datasets.esic_v1.service import load_data
 
 

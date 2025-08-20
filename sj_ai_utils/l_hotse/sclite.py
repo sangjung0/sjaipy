@@ -5,24 +5,25 @@ import numpy as np
 
 from pathlib import Path
 from typing import Callable
+from datasets import Dataset
 
 from sj_ai_utils.evaluator.sclite_utils import TRNFormat, generate_ref_and_hyp as grah
-from sj_ai_utils.datasets.libri_speech_asr_corpus.service import load_data
+from sj_ai_utils.l_hotse.util import load_data
 
 if TYPE_CHECKING:
     pass
 
 
 def generate_ref_and_hyp(
-    data_paths: list[Path],
+    datasets: Dataset,
     transcriber: Callable[[np.ndarray, Path], str],
     normalizer: Callable[[str], str] = lambda x: x,
     sr: int = 16_000,
     size: int = -1,
-    rng: np.random.Generator | np.random.RandomState | None = None,
+    rng: np.random.Generator | np.random.RandomState = np.random,
 ) -> dict[str, dict[str, list[TRNFormat]]]:
     return grah(
-        data_paths=data_paths,
+        datasets,
         transcriber=transcriber,
         data_loader=load_data,
         normalizer=normalizer,

@@ -29,16 +29,16 @@ def load_data(
         rec = recording_set[idx]
         rid = rec.id
         rec.resample(sr)  # resample to 16kHz
-        wav = rec.load_audio(channels=0)
+        sources = [rec.load_audio(channels=c) for c in rec.channel_ids]
 
-        assert len(wav) == 1, "wav must be mono"
+        for wav, channel_id in zip(sources, rec.channel_ids):
+            assert len(wav) == 1, "wav must be mono"
+            segs = [s for s in supervision_set if s.recording_id == rid and s.channel == channel_id]
+            segs.sort(key=lambda s: s.start)
+            y = " ".join([s.text for s in segs])
 
-        segs = [s for s in supervision_set if s.recording_id == rid]
-        segs.sort(key=lambda s: s.start)
-
-        y = " ".join([s.text for s in segs])
-
-        yield wav[0], rid, y, rid
+            _id = rid + "_" + str(channel_id)
+            yield wav[0], _id, y, _id
 
 
 __all__ = ["load_data"]

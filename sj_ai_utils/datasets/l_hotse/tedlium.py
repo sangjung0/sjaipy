@@ -16,7 +16,9 @@ class Tedlium:
         return download_tedlium(target_dir=self.__path, **kwargs)
 
     def prepare(self, **kwargs) -> dict[str, dict[str, RecordingSet | SupervisionSet]]:
-        return prepare_tedlium(self.__path, output_dir=self.__prepare_out, **kwargs)
+        return prepare_tedlium(
+            self.__path / "TEDLIUM_release-3", output_dir=self.__prepare_out, **kwargs
+        )
 
     def __load_set(self, set_name: str) -> LHotseDataset:
         recording_set = RecordingSet.from_file(

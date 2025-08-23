@@ -14,54 +14,69 @@ if TYPE_CHECKING:
 
 class LHotseDataset(Dataset):
     def __init__(
-        self, recording_set: RecordingSet, supervision_set: SupervisionSet, sr: int
+        self,
+        recording_set: RecordingSet,
+        supervision_set: SupervisionSet,
+        sr: int,
+        X: list[tuple[int, int]] = [],
     ):
         self._recording_set = recording_set
         self._supervision_set = supervision_set
         self._sr = sr
-
-    def __iter__(self):
-        for rec in self._recording_set:
-            rid = rec.id
-            rec.resample(self._sr)
-            sources = [rec.load_audio(channels=c) for c in rec.channel_ids]
-
-            for wav, channel_id in zip(sources, rec.channel_ids):
-                assert len(wav) == 1, "wav must be mono"
-                segs = [
-                    s
-                    for s in self._supervision_set
-                    if s.recording_id == rid and s.channel == channel_id
-                ]
-                segs.sort(key=lambda s: s.start)
-                y = " ".join([s.text for s in segs])
-
-                _id = (rid + "_" + str(channel_id))[-255:]
-                yield _id, wav[0], y
+        if not X:
+            self._X = [
+                (c, idx)
+                for idx in range(len(recording_set))
+                for c in recording_set[idx].channel_ids
+            ]
 
     @override
-    def sample(
+    def __len__(self):
+        return len(self._X)
+
+    @override
+    def _sample(
         self,
-        sample_size: int,
+        size: int,
+        start: int = 0,
         rng: np.random.Generator | np.random.RandomState | None = None,
     ) -> "LHotseDataset":
-        if sample_size <= 0:
-            sample_size = len(self._recording_set)
+        if rng is None or size == len(self) - start:
+            return self.slice(start=start, stop=start + size)
         else:
-            sample_size = min(sample_size, len(self._recording_set))
-
-        if rng is None or sample_size == len(self._recording_set):
-            indices = range(sample_size)
-        else:
-            indices = rng.choice(
-                len(self._recording_set), size=sample_size, replace=False
+            X = rng.choice(self._X[start:], size=size, replace=False)
+            return LHotseDataset(
+                self._recording_set, self._supervision_set, sr=self._sr, X=list(X)
             )
 
-        recording_set = RecordingSet.from_recordings(
-            self._recording_set[i] for i in indices
+    @override
+    def slice(
+        self, start: int | None = None, stop: int | None = None, step: int | None = None
+    ) -> "Dataset":
+        X = self._X[start:stop:step]
+        return LHotseDataset(
+            self._recording_set, self._supervision_set, sr=self._sr, X=X
         )
 
-        return LHotseDataset(recording_set, self._supervision_set, sr=self._sr)
+    @override
+    def get_item(self, idx: int):
+        idx, channel = self._X[idx]
+        rec = self._recording_set[idx]
+        rec.resample(self._sr)
+        rid = rec.id
+        wav = rec.load_audio(channels=channel)
+        assert len(wav) == 1, "wav must be mono"
+
+        segs = [
+            s
+            for s in self._supervision_set
+            if s.recording_id == rid and s.channel == channel
+        ]
+        segs.sort(key=lambda s: s.start)
+        y = " ".join([s.text for s in segs])
+
+        _id = (rid + "_" + str(channel))[-255:]
+        return _id, wav[0], y
 
 
 __all__ = ["LHotseDataset"]

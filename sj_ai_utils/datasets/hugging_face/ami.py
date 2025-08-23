@@ -6,6 +6,8 @@ import numpy as np
 from functools import lru_cache
 from datasets import Dataset
 
+from sj_utils.string import normalize_text_only_en
+from sj_utils.typing import override
 from sj_ai_utils.datasets.hugging_face.dataset_loader import DatasetLoader
 from sj_ai_utils.datasets.hugging_face.hugging_face_dataset import HuggingFaceDataset
 
@@ -22,12 +24,13 @@ class AMIDataset(HuggingFaceDataset):
     def __init__(self, dataset: Dataset, sr: int = DEFAULT_SAMPLE_RATE):
         super().__init__(dataset, sr)
 
-    def __iter__(self):
-        for data in self._dataset:
-            _id = data["audio_id"][-255:]
-            audio = data["audio"]["array"].astype(np.float32)
-            txt = data["text"]
-            yield _id, audio, txt
+    @override
+    def get_item(self, idx: int) -> tuple[str, np.ndarray, str]:
+        data = self._dataset[idx]
+        _id = normalize_text_only_en(data["audio_id"])[-255:]
+        audio = data["audio"]["array"].astype(np.float32)
+        txt = data["text"]
+        return _id, audio, txt
 
 
 class AMI(DatasetLoader):

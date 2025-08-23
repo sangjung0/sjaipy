@@ -6,6 +6,7 @@ import numpy as np
 from datasets import Dataset as DT
 from abc import ABC
 
+from sj_utils.typing import override
 from sj_ai_utils.datasets.dataset import Dataset
 
 if TYPE_CHECKING:
@@ -14,30 +15,43 @@ if TYPE_CHECKING:
 
 class HuggingFaceDataset(Dataset, ABC):
     def __init__(self, dataset: DT, sr: int):
+        super().__init__(sr)
         self._dataset = dataset
-        self._sr = sr
 
+    def __len__(self):
+        return len(self._dataset)
+
+    @override
     def _get_construct_args(self) -> dict:
-        return {"sr": self._sr}
+        args = super()._get_construct_args()
+        args["dataset"] = self._dataset
+        return args
 
-    def sample(
+    @override
+    def _sample(
         self,
-        sample_size: int,
+        size: int,
+        start: int = 0,
         rng: np.random.Generator | np.random.RandomState | None = None,
     ) -> "HuggingFaceDataset":
-        if sample_size <= 0:
-            sample_size = len(self._dataset)
-        if sample_size > len(self._dataset):
-            sample_size = min(sample_size, len(self._dataset))
-
-        if rng is None or sample_size == len(self._dataset):
-            dataset = self._dataset.select(range(sample_size))
+        if rng is None or size == len(self) - start:
+            return self.slice(start, start + size)
         else:
-            index = rng.choice(len(self._dataset), size=sample_size, replace=False)
+            indices = range(len(self))[start:]
+            index = rng.choice(indices, size=size, replace=False)
             dataset = self._dataset.select(index)
 
         args = self._get_construct_args()
-        return type(self)._construct(dataset, **args)
+        args["dataset"] = dataset
+        return type(self)(**args)
+
+    @override
+    def slice(
+        self, start: int | None = None, stop: int | None = None, step: int | None = None
+    ) -> "HuggingFaceDataset":
+        indices = range(len(self._dataset))[start:stop:step]
+        dataset = self._dataset.select(indices)
+        return HuggingFaceDataset(dataset, self._sr)
 
 
 __all__ = ["HuggingFaceDataset"]

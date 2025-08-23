@@ -9,6 +9,7 @@ from datasets import Dataset
 from sj_ai_utils.datasets.hugging_face.hugging_face_dataset import HuggingFaceDataset
 from sj_ai_utils.datasets.hugging_face.dataset_loader import DatasetLoader
 from sj_utils.string import normalize_text_only_en
+from sj_utils.typing import override
 
 if TYPE_CHECKING:
     pass
@@ -29,20 +30,22 @@ class TedliumDataset(HuggingFaceDataset):
         super().__init__(dataset, sr)
         self._ignore_set = ignore_set
 
+    @override
     def _get_construct_args(self):
         args = super()._get_construct_args()
         args["ignore_set"] = self._ignore_set
         return args
 
-    def __iter__(self):
-        for data in self._dataset:
-            _id = normalize_text_only_en(data["id"][-255:])
-            audio = data["audio"]["array"].astype(np.float32)
-            txt = data["text"]
+    @override
+    def get_item(self, idx: int) -> tuple[str, np.ndarray, str]:
+        data = self._dataset[idx]
+        _id = normalize_text_only_en(data["id"])[-255:]
+        audio = data["audio"]["array"].astype(np.float32)
+        txt = data["text"]
 
-            if txt in self._ignore_set:
-                continue
-            yield _id, audio, txt
+        if txt in self._ignore_set:
+            txt = ""
+        return _id, audio, txt
 
 
 class Tedlium(DatasetLoader):

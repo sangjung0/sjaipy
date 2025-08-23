@@ -1,7 +1,6 @@
 import numpy as np
 
 from pathlib import Path
-from functools import cached_property
 
 from sj_utils.audio import load_audio_from_mp4
 from sj_utils.string import normalize_text_only_en
@@ -20,7 +19,6 @@ class ESICv1Dataset(Dataset):
         self._X = X
         self._Y = Y
 
-    @cached_property
     def __len__(self):
         return len(self._X)
 
@@ -70,7 +68,7 @@ class ESICv1Dataset(Dataset):
         }
         JsonSaver(description).save(data, path)
 
-    @classmethod
+    @staticmethod
     def load(path: Path):
         _, data = load_json(path)
         data["X"] = [Path(x) for x in data["X"]]

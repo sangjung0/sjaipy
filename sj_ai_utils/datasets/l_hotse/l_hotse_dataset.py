@@ -62,8 +62,8 @@ class LHotseDataset(Dataset):
 
     @override
     def get_item(self, idx: int):
-        idx, channel = self._X[idx]
-        rec = self._recording_set[idx]
+        channel, r_idx = self._X[idx]
+        rec = self._recording_set[r_idx]
         rec.resample(self._sr)
         rid = rec.id
         wav = rec.load_audio(channels=channel)

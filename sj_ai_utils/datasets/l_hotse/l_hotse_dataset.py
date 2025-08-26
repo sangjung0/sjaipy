@@ -29,6 +29,8 @@ class LHotseDataset(Dataset):
                 for idx in range(len(recording_set))
                 for c in recording_set[idx].channel_ids
             ]
+        else:
+            self._X = X
 
     @override
     def __len__(self):

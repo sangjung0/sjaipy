@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from lhotse import RecordingSet, SupervisionSet
+from functools import lru_cache
 
 from sj_ai_utils.datasets.dataset import Dataset
 from sj_utils.typing import override
@@ -61,6 +62,7 @@ class LHotseDataset(Dataset):
         )
 
     @override
+    @lru_cache(maxsize=128)
     def get_item(self, idx: int):
         channel, r_idx = self._X[idx]
         rec = self._recording_set[r_idx]
@@ -72,7 +74,12 @@ class LHotseDataset(Dataset):
         segs = [
             s
             for s in self._supervision_set
-            if s.recording_id == rid and s.channel == channel
+            # 이부분은 추후 수정 필요할 듯 채널 탐지 확실하지 않음
+            if s.recording_id == rid
+            and (
+                s.channel == channel
+                or (isinstance(s.channel, list) and channel in s.channel)
+            )
         ]
         segs.sort(key=lambda s: s.start)
         y = " ".join([s.text for s in segs])

@@ -1,6 +1,7 @@
 import numpy as np
 
 from pathlib import Path
+from functools import lru_cache
 
 from sj_utils.audio import load_audio_from_mp4
 from sj_utils.string import normalize_text_only_en
@@ -53,6 +54,7 @@ class ESICv1Dataset(Dataset):
         )
 
     @override
+    @lru_cache(maxsize=128)
     def get_item(self, idx: int) -> tuple[str, np.ndarray, str]:
         x, y = self._X[idx], self._Y[idx]
         audio = load_audio_from_mp4(x, self._sr)[0]

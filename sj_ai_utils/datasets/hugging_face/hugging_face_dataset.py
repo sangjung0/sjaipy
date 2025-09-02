@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from typing_extensions import override
 from datasets import Dataset as DT
 from abc import ABC
 
-from sj_utils.typing import override
 from sj_ai_utils.datasets.dataset import Dataset
 
 if TYPE_CHECKING:

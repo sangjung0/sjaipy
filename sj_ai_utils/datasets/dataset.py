@@ -2,8 +2,7 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from typing import Generator, Any
-
-from sj_utils.typing import override
+from typing_extensions import override
 
 
 class Dataset(ABC):

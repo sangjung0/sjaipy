@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from typing_extensions import override
 from functools import lru_cache
 from datasets import Dataset
 
 from sj_ai_utils.datasets.hugging_face.hugging_face_dataset import HuggingFaceDataset
 from sj_ai_utils.datasets.hugging_face.dataset_loader import DatasetLoader
 from sj_utils.string import normalize_text_only_en
-from sj_utils.typing import override
 
 if TYPE_CHECKING:
     pass

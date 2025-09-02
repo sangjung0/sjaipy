@@ -10,8 +10,7 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Iterable, Callable, Generator, Any
 from pathlib import Path
-
-from sj_utils.typing import deprecated
+from typing_extensions import deprecated
 
 if TYPE_CHECKING:
     pass
@@ -229,7 +228,7 @@ def parse_sclite_summary(output: str) -> dict[str, int | float]:
     }
 
 
-@deprecated
+@deprecated("This function will be removed in future versions.")
 def concat_trn_file(source: list[Path], dest: Path) -> None:
     """trn 리스트를 받아 하나의 trn 파일로 합치는 함수
 

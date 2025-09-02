@@ -2,11 +2,11 @@ import numpy as np
 
 from pathlib import Path
 from functools import lru_cache
+from typing_extensions import override
 
 from sj_utils.audio import load_audio_from_mp4
 from sj_utils.string import normalize_text_only_en
 from sj_utils.file.json import JsonSaver, load_json
-from sj_utils.typing import override
 from sj_ai_utils.datasets.dataset import Dataset
 
 DEFAULT_SAMPLE_RATE = 16_000

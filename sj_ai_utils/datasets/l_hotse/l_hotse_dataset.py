@@ -5,9 +5,9 @@ import numpy as np
 
 from lhotse import RecordingSet, SupervisionSet
 from functools import lru_cache
+from typing_extensions import override
 
 from sj_ai_utils.datasets.dataset import Dataset
-from sj_utils.typing import override
 
 if TYPE_CHECKING:
     pass

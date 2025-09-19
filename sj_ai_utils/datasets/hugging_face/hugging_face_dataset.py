@@ -18,14 +18,14 @@ class HuggingFaceDataset(Dataset, ABC):
         super().__init__(sr)
         self._dataset = dataset
 
-    def __len__(self):
-        return len(self._dataset)
-
-    @override
     def _get_construct_args(self) -> dict:
         args = super()._get_construct_args()
         args["dataset"] = self._dataset
         return args
+
+    @override
+    def __len__(self):
+        return len(self._dataset)
 
     @override
     def _sample(
@@ -51,7 +51,10 @@ class HuggingFaceDataset(Dataset, ABC):
     ) -> "HuggingFaceDataset":
         indices = range(len(self._dataset))[start:stop:step]
         dataset = self._dataset.select(indices)
-        return HuggingFaceDataset(dataset, self._sr)
+
+        args = self._get_construct_args()
+        args["dataset"] = dataset
+        return type(self)(**args)
 
 
 __all__ = ["HuggingFaceDataset"]

@@ -3,8 +3,10 @@ from lhotse import RecordingSet, SupervisionSet
 from lhotse.recipes.librispeech import download_librispeech, prepare_librispeech
 
 from sj_ai_utils.datasets.l_hotse.l_hotse_dataset import LHotseDataset
+from sj_ai_utils.datasets.dataset import Task
 
 DEFAULT_SAMPLE_RATE = 16_000
+DEFAULT_TASK = ("asr",)
 
 
 class LibriSpeech:
@@ -23,32 +25,53 @@ class LibriSpeech:
             self.__path / "LibriSpeech", output_dir=self.__prepare_out, **kwargs
         )
 
-    def __load_set(self, set_name: str) -> LHotseDataset:
+    def __load_set(self, set_name: str, sr: int, task=tuple[Task]) -> LHotseDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out / f"librispeech_recordings_{set_name}.jsonl.gz"
         )
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"librispeech_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset(recording_set, supervision_set, sr=DEFAULT_SAMPLE_RATE)
+        return LHotseDataset(recording_set, supervision_set, sr=sr, task=task)
 
-    def load_train_clean_100(self) -> LHotseDataset:
-        return self.__load_set("train-clean-100")
+    def load_train_clean_100(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
+        return self.__load_set("train-clean-100", sr=sr, task=task)
 
-    def load_train_clean_360(self) -> LHotseDataset:
-        return self.__load_set("train-clean-360")
+    def load_train_clean_360(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
+        return self.__load_set("train-clean-360", sr=sr, task=task)
 
-    def load_train_other_500(self) -> LHotseDataset:
-        return self.__load_set("train-other-500")
+    def load_train_other_500(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
+        return self.__load_set("train-other-500", sr=sr, task=task)
 
-    def load_dev_clean(self) -> LHotseDataset:
-        return self.__load_set("dev-clean")
+    def load_dev_clean(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
+        return self.__load_set("dev-clean", sr=sr, task=task)
 
-    def load_dev_other(self) -> LHotseDataset:
-        return self.__load_set("dev-other")
+    def load_dev_other(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
+        return self.__load_set("dev-other", sr=sr, task=task)
 
-    def load_test_clean(self) -> LHotseDataset:
-        return self.__load_set("test-clean")
+    def load_test_clean(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
+        return self.__load_set("test-clean", sr=sr, task=task)
 
-    def load_test_other(self) -> LHotseDataset:
-        return self.__load_set("test-other")
+    def load_test_other(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
+        return self.__load_set("test-other", sr=sr, task=task)

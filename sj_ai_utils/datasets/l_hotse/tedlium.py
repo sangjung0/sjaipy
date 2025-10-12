@@ -3,8 +3,10 @@ from lhotse import RecordingSet, SupervisionSet
 from lhotse.recipes.tedlium import download_tedlium, prepare_tedlium
 
 from sj_ai_utils.datasets.l_hotse.l_hotse_dataset import LHotseDataset
+from sj_ai_utils.datasets.dataset import Task
 
 DEFAULT_SAMPLE_RATE = 16_000
+DEFAULT_TASK = ("asr",)
 
 
 class Tedlium:
@@ -20,20 +22,28 @@ class Tedlium:
             self.__path / "TEDLIUM_release-3", output_dir=self.__prepare_out, **kwargs
         )
 
-    def __load_set(self, set_name: str) -> LHotseDataset:
+    def __load_set(self, set_name: str, sr: int, task: list[Task]) -> LHotseDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out / f"tedlium_recordings_{set_name}.jsonl.gz"
         )
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"tedlium_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset(recording_set, supervision_set, DEFAULT_SAMPLE_RATE)
+        return LHotseDataset(recording_set, supervision_set, sr, task)
 
-    def load_train(self) -> LHotseDataset:
-        return self.__load_set("train")
+    def load_train(
+        self,
+        sr: int = DEFAULT_SAMPLE_RATE,
+        task: list[Task] = DEFAULT_TASK,
+    ) -> LHotseDataset:
+        return self.__load_set("train", sr, task)
 
-    def load_dev(self) -> LHotseDataset:
-        return self.__load_set("dev")
+    def load_dev(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: list[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        return self.__load_set("dev", sr, task)
 
-    def load_test(self) -> LHotseDataset:
-        return self.__load_set("test")
+    def load_test(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: list[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        return self.__load_set("test", sr, task)

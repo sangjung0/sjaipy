@@ -3,8 +3,10 @@ from lhotse import RecordingSet, SupervisionSet
 from lhotse.recipes.ami import prepare_ami, download_ami
 
 from sj_ai_utils.datasets.l_hotse.l_hotse_dataset import LHotseDataset
+from sj_ai_utils.datasets.dataset import Task
 
 DEFAULT_SAMPLE_RATE = 16_000
+DEFAULT_TASK = ("asr",)
 
 
 class AMI:
@@ -22,29 +24,43 @@ class AMI:
             self.__path, output_dir=self.__prepare_out, mic=mic, **kwargs
         )
 
-    def __load_set(self, mic: str, set_name: str) -> LHotseDataset:
+    def __load_set(
+        self, mic: str, set_name: str, sr: int, task: tuple[Task]
+    ) -> LHotseDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out / f"ami-{mic}_recordings_{set_name}.jsonl.gz"
         )
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"ami-{mic}_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset(recording_set, supervision_set, sr=DEFAULT_SAMPLE_RATE)
+        return LHotseDataset(recording_set, supervision_set, sr=sr, task=task)
 
-    def load_train_ihm(self) -> LHotseDataset:
-        return self.__load_set("ihm", "train")
+    def load_train_ihm(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        return self.__load_set("ihm", "train", sr=sr, task=task)
 
-    def load_dev_ihm(self) -> LHotseDataset:
-        return self.__load_set("ihm", "dev")
+    def load_dev_ihm(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        return self.__load_set("ihm", "dev", sr=sr, task=task)
 
-    def load_test_ihm(self) -> LHotseDataset:
-        return self.__load_set("ihm", "test")
+    def load_test_ihm(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        return self.__load_set("ihm", "test", sr=sr, task=task)
 
-    def load_train_sdm(self) -> LHotseDataset:
-        return self.__load_set("sdm", "train")
+    def load_train_sdm(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        return self.__load_set("sdm", "train", sr=sr, task=task)
 
-    def load_dev_sdm(self) -> LHotseDataset:
-        return self.__load_set("sdm", "dev")
+    def load_dev_sdm(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        return self.__load_set("sdm", "dev", sr=sr, task=task)
 
-    def load_test_sdm(self) -> LHotseDataset:
-        return self.__load_set("sdm", "test")
+    def load_test_sdm(
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+    ) -> LHotseDataset:
+        return self.__load_set("sdm", "test", sr=sr, task=task)

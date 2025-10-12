@@ -7,7 +7,7 @@ from lhotse import RecordingSet, SupervisionSet
 from functools import lru_cache
 from typing_extensions import override
 
-from sj_ai_utils.datasets.dataset import Dataset
+from sj_ai_utils.datasets.dataset import Dataset, Sample, Task
 
 if TYPE_CHECKING:
     pass
@@ -19,23 +19,24 @@ class LHotseDataset(Dataset):
         recording_set: RecordingSet,
         supervision_set: SupervisionSet,
         sr: int,
+        task: tuple[Task],
         X: list[tuple[int, int]] = [],
     ):
-        self._recording_set = recording_set
-        self._supervision_set = supervision_set
-        self._sr = sr
+        super().__init__(sr, task)
+        self.recording_set = recording_set.resample(sampling_rate=sr)
+        self.supervision_set = supervision_set
         if not X:
-            self._X = [
+            self.__X = [
                 (c, idx)
-                for idx in range(len(recording_set))
-                for c in recording_set[idx].channel_ids
+                for idx in range(len(self.recording_set))
+                for c in self.recording_set[idx].channel_ids
             ]
         else:
-            self._X = X
+            self.__X = X
 
     @override
     def __len__(self):
-        return len(self._X)
+        return len(self.__X)
 
     @override
     def _sample(
@@ -47,34 +48,30 @@ class LHotseDataset(Dataset):
         if rng is None or size == len(self) - start:
             return self.slice(start=start, stop=start + size)
         else:
-            X = rng.choice(self._X[start:], size=size, replace=False)
+            X = rng.choice(self.__X[start:], size=size, replace=False)
             return LHotseDataset(
-                self._recording_set, self._supervision_set, sr=self._sr, X=list(X)
+                self.recording_set, self.supervision_set, sr=self.sr, X=list(X)
             )
 
     @override
     def slice(
         self, start: int | None = None, stop: int | None = None, step: int | None = None
     ) -> "Dataset":
-        X = self._X[start:stop:step]
-        return LHotseDataset(
-            self._recording_set, self._supervision_set, sr=self._sr, X=X
-        )
+        X = self.__X[start:stop:step]
+        return LHotseDataset(self.recording_set, self.supervision_set, sr=self.sr, X=X)
 
     @override
     @lru_cache(maxsize=128)
     def get_item(self, idx: int):
-        channel, r_idx = self._X[idx]
-        rec = self._recording_set[r_idx]
-        rec.resample(self._sr)
+        channel, r_idx = self.__X[idx]
+        rec = self.recording_set[r_idx]
         rid = rec.id
         wav = rec.load_audio(channels=channel)
         assert len(wav) == 1, "wav must be mono"
 
         segs = [
             s
-            for s in self._supervision_set
-            # 이부분은 추후 수정 필요할 듯 채널 탐지 확실하지 않음
+            for s in self.supervision_set
             if s.recording_id == rid
             and (
                 s.channel == channel
@@ -82,10 +79,19 @@ class LHotseDataset(Dataset):
             )
         ]
         segs.sort(key=lambda s: s.start)
-        y = " ".join([s.text for s in segs])
+        result = {}
+        if "asr" in self.task:
+            result["asr"] = " ".join([s.text for s in segs])
+        if "diarization" in self.task:
+            result["diarization"] = [
+                {"start": s.start, "end": s.end, "label": s.speaker} for s in segs
+            ]
 
-        _id = (rid + "_" + str(channel))[-255:]
-        return _id, wav[0], y
+        return Sample(
+            id=(rid + "_" + str(channel))[-255:],
+            audio=wav[0],
+            Y=result,
+        )
 
 
 __all__ = ["LHotseDataset"]

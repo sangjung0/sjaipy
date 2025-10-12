@@ -8,6 +8,7 @@ from functools import lru_cache
 from datasets import Dataset
 
 from sj_utils.string import normalize_text_only_en
+from sj_ai_utils.datasets.dataset import Dataset, Sample
 from sj_ai_utils.datasets.hugging_face.dataset_loader import DatasetLoader
 from sj_ai_utils.datasets.hugging_face.hugging_face_dataset import HuggingFaceDataset
 
@@ -18,11 +19,13 @@ if TYPE_CHECKING:
 DEFAULT_PATH = "DragonLine/ksponspeech"
 DEFAULT_CONFIG_NAME = "default"
 DEFAULT_SAMPLE_RATE = 16_000
+DEFAULT_TASK = ("asr",)
 
 
 class KSPonSpeechDataset(HuggingFaceDataset):
-    def __init__(self, dataset: Dataset, sr: int = DEFAULT_SAMPLE_RATE):
-        super().__init__(dataset, sr)
+    def __init__(self, dataset: Dataset, sr: int):
+        super().__init__(dataset, sr, DEFAULT_TASK)
+        print("[INFO] 화자분리 데이터 없음, 오디오가 연속적이지 않고 세그먼트로 나눠져 있음")
 
     @override
     def get_item(self, idx: int) -> tuple[str, np.ndarray, str]:
@@ -30,7 +33,7 @@ class KSPonSpeechDataset(HuggingFaceDataset):
         _id = normalize_text_only_en(data["audio"]["path"])[-255:]
         audio = data["audio"]["array"].astype(np.float32)
         txt = data["transcripts"]
-        return _id, audio, txt
+        return Sample(id=_id, audio=audio, Y={"asr": txt})
 
 
 class KSPonSpeech(DatasetLoader):
@@ -41,16 +44,31 @@ class KSPonSpeech(DatasetLoader):
         return super().split_names(config_name)
 
     @lru_cache(maxsize=1)
-    def train(self, config_name: str = DEFAULT_CONFIG_NAME, **kwargs):
-        return KSPonSpeechDataset(super().load(config_name, "train", **kwargs))
+    def train(
+        self,
+        config_name: str = DEFAULT_CONFIG_NAME,
+        sr: int = DEFAULT_SAMPLE_RATE,
+        **kwargs,
+    ):
+        return KSPonSpeechDataset(super().load(config_name, "train", **kwargs), sr)
 
     @lru_cache(maxsize=1)
-    def valid(self, config_name: str = DEFAULT_CONFIG_NAME, **kwargs):
-        return KSPonSpeechDataset(super().load(config_name, "valid", **kwargs))
+    def valid(
+        self,
+        config_name: str = DEFAULT_CONFIG_NAME,
+        sr: int = DEFAULT_SAMPLE_RATE,
+        **kwargs,
+    ):
+        return KSPonSpeechDataset(super().load(config_name, "valid", **kwargs), sr)
 
     @lru_cache(maxsize=1)
-    def test(self, config_name: str = DEFAULT_CONFIG_NAME, **kwargs):
-        return KSPonSpeechDataset(super().load(config_name, "test", **kwargs))
+    def test(
+        self,
+        config_name: str = DEFAULT_CONFIG_NAME,
+        sr: int = DEFAULT_SAMPLE_RATE,
+        **kwargs,
+    ):
+        return KSPonSpeechDataset(super().load(config_name, "test", **kwargs), sr)
 
 
 __all__ = ["KSPonSpeech", "KSPonSpeechDataset"]

@@ -22,7 +22,9 @@ class Tedlium:
             self.__path / "TEDLIUM_release-3", output_dir=self.__prepare_out, **kwargs
         )
 
-    def __load_set(self, set_name: str, sr: int, task: list[Task]) -> LHotseDataset:
+    def __load_set(
+        self, set_name: str, sr: int, task: tuple[Task, ...]
+    ) -> LHotseDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out / f"tedlium_recordings_{set_name}.jsonl.gz"
         )
@@ -34,16 +36,19 @@ class Tedlium:
     def load_train(
         self,
         sr: int = DEFAULT_SAMPLE_RATE,
-        task: list[Task] = DEFAULT_TASK,
+        task: tuple[Task, ...] = DEFAULT_TASK,
     ) -> LHotseDataset:
         return self.__load_set("train", sr, task)
 
     def load_dev(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: list[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
         return self.__load_set("dev", sr, task)
 
     def load_test(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: list[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
         return self.__load_set("test", sr, task)
+
+
+__all__ = ["Tedlium"]

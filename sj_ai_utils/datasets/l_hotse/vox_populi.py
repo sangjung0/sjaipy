@@ -1,3 +1,5 @@
+import warnings
+
 from pathlib import Path
 from lhotse import RecordingSet, SupervisionSet
 from lhotse.recipes.voxpopuli import download_voxpopuli, prepare_voxpopuli
@@ -21,7 +23,7 @@ class VoxPopuli:
         return prepare_voxpopuli(self.__path, output_dir=self.__prepare_out, **kwargs)
 
     def __load_set(
-        self, set_name: str, subset: str, lang: str, sr: int, task: list[Task]
+        self, set_name: str, subset: str, lang: str, sr: int, task: tuple[Task, ...]
     ) -> LHotseDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out
@@ -34,19 +36,28 @@ class VoxPopuli:
         return LHotseDataset(recording_set, supervision_set, sr, task)
 
     def load_train_asr_en(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: list[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ):
-        print("[INFO] 오디오와 출력이 일치하지 않음. 출력이 나눠져 있음.")
+        print()
         return self.__load_set("train", "asr", "en", sr, task)
 
     def load_dev_asr_en(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: list[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ):
-        print("[INFO] 오디오와 출력이 일치하지 않음. 출력이 나눠져 있음.")
         return self.__load_set("dev", "asr", "en", sr, task)
 
     def load_test_asr_en(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: list[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ):
-        print("[INFO] 오디오와 출력이 일치하지 않음. 출력이 나눠져 있음.")
         return self.__load_set("test", "asr", "en", sr, task)
+
+
+if __name__ != "__main__":
+    warnings.warn(
+        "[INFO] VoxPopuli 오디오와 출력이 일치하지 않음. 출력이 나눠져 있음.",
+        category=UserWarning,
+        stacklevel=2,
+    )
+
+
+__all__ = ["VoxPopuli"]

@@ -1,8 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import librosa
 import numpy as np
 
+from typing import Sequence
 from typing_extensions import override, Self
 from datasets import Dataset as DT
 from abc import ABC
@@ -14,18 +16,49 @@ if TYPE_CHECKING:
 
 
 class HuggingFaceDataset(Dataset, ABC):
-    def __init__(self, dataset: DT, sr: int, task: tuple[Task]):
+    def __init__(self, dataset: DT, sr: int, task: tuple[Task, ...]):
         super().__init__(sr, task)
         self._dataset = dataset
+        self._original_sr = sr
 
-    def _get_construct_args(self) -> dict:
-        args = super()._get_construct_args()
-        args["dataset"] = self._dataset
-        return args
+    @Dataset.args.getter
+    @override
+    def args(self) -> dict:
+        return {
+            **super().args,
+            "dataset": self._dataset,
+        }
+
+    @Dataset.length.getter
+    @override
+    def length(self) -> int:
+        return len(self._dataset)
 
     @override
-    def __len__(self):
-        return len(self._dataset)
+    def to_dict(self) -> dict:
+        return {
+            **super().to_dict(),
+            "dataset": self._dataset.to_dict(),
+        }
+
+    @override
+    def select(self, indices: Sequence[int]) -> Self:
+        dataset = self._dataset.select(indices)
+
+        args = self.args
+        args["dataset"] = dataset
+        return type(self)(**args)
+
+    @override
+    def slice(
+        self, start: int | None = None, stop: int | None = None, step: int | None = None
+    ) -> Self:
+        indices = range(len(self._dataset))[start:stop:step]
+        dataset = self._dataset.select(indices)
+
+        args = self.args
+        args["dataset"] = dataset
+        return type(self)(**args)
 
     @override
     def _sample(
@@ -41,20 +74,22 @@ class HuggingFaceDataset(Dataset, ABC):
             index = rng.choice(indices, size=size, replace=False)
             dataset = self._dataset.select(index)
 
-        args = self._get_construct_args()
+        args = self.args
         args["dataset"] = dataset
         return type(self)(**args)
 
+    @staticmethod
     @override
-    def slice(
-        self, start: int | None = None, stop: int | None = None, step: int | None = None
-    ) -> Self:
-        indices = range(len(self._dataset))[start:stop:step]
-        dataset = self._dataset.select(indices)
+    def from_dict(data: dict) -> Self:
+        data["dataset"] = DT.from_dict(data["dataset"])
+        return HuggingFaceDataset(**data)
 
-        args = self._get_construct_args()
-        args["dataset"] = dataset
-        return type(self)(**args)
+    def _resample_audio(self, audio: np.ndarray) -> np.ndarray:
+        if self._sr != self._original_sr:
+            audio = librosa.resample(
+                audio, orig_sr=self._original_sr, target_sr=self._sr
+            )
+        return audio
 
 
 __all__ = ["HuggingFaceDataset"]

@@ -26,10 +26,11 @@ class VoxPopuliDataset(HuggingFaceDataset):
         super().__init__(dataset, sr, task)
 
     @override
-    def get_item(self, idx: int) -> tuple[str, np.ndarray, str]:
+    def get(self, idx: int) -> tuple[str, np.ndarray, str]:
         data = self._dataset[idx]
         _id = normalize_text_only_en(data["audio_id"])[-255:]
-        audio = data["audio"]["array"].astype(np.float32)
+        audio = data["audio"]["array"]
+        audio = self._resample_audio(audio).astype(np.float32)
         txt = data["raw_text"]
         return _id, audio, txt
 

@@ -1,14 +1,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import warnings
 import numpy as np
 
 from typing_extensions import override
 from functools import lru_cache
-from datasets import Dataset
 
 from sj_utils.string import normalize_text_only_en
-from sj_ai_utils.datasets.dataset import Dataset, Task, Sample
+from sj_ai_utils.datasets.dataset import Task, Sample
 from sj_ai_utils.datasets.hugging_face.dataset_loader import DatasetLoader
 from sj_ai_utils.datasets.hugging_face.hugging_face_dataset import HuggingFaceDataset
 
@@ -23,15 +23,12 @@ DEFAULT_TASK = ("asr",)
 
 
 class AMIDataset(HuggingFaceDataset):
-    def __init__(self, dataset: Dataset, sr: int, task: tuple[Task]):
-        super().__init__(dataset, sr, task)
-        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음")
-
     @override
-    def get_item(self, idx: int) -> tuple[str, np.ndarray, str]:
+    def get(self, idx: int) -> tuple[str, np.ndarray, str]:
         data = self._dataset[idx]
         _id = normalize_text_only_en(data["audio_id"])[-255:]
-        audio = data["audio"]["array"].astype(np.float32)
+        audio = data["audio"]["array"]
+        audio = self._resample_audio(audio).astype(np.float32)
         result = {}
         if "asr" in self.task:
             result["asr"] = data["text"]
@@ -43,7 +40,7 @@ class AMIDataset(HuggingFaceDataset):
                     "label": data["speaker_id"],
                 }
             ]
-        return Sample(id=_id, audio=audio, Y=result)
+        return Sample(id=_id, audio=audio, _Y=result)
 
 
 class AMI(DatasetLoader):
@@ -58,7 +55,7 @@ class AMI(DatasetLoader):
         self,
         config_name: str = DEFAULT_CONFIG_NAME,
         sr: int = DEFAULT_SAMPLE_RATE,
-        task: list[Task] = DEFAULT_TASK,
+        task: tuple[Task, ...] = DEFAULT_TASK,
         **kwargs,
     ):
         return AMIDataset(super().load(config_name, "train", **kwargs), sr, task)
@@ -68,7 +65,7 @@ class AMI(DatasetLoader):
         self,
         config_name: str = DEFAULT_CONFIG_NAME,
         sr: int = DEFAULT_SAMPLE_RATE,
-        task: list[Task] = DEFAULT_TASK,
+        task: tuple[Task, ...] = DEFAULT_TASK,
         **kwargs,
     ):
         return AMIDataset(super().load(config_name, "validation", **kwargs), sr, task)
@@ -78,10 +75,17 @@ class AMI(DatasetLoader):
         self,
         config_name: str = DEFAULT_CONFIG_NAME,
         sr: int = DEFAULT_SAMPLE_RATE,
-        task: list[Task] = DEFAULT_TASK,
+        task: tuple[Task, ...] = DEFAULT_TASK,
         **kwargs,
     ):
         return AMIDataset(super().load(config_name, "test", **kwargs), sr, task)
 
+
+if __name__ != "__main__":
+    warnings.warn(
+        "[INFO] AMIDataset 오디오가 연속적이지 않고 세그먼트로 나눠져 있음",
+        category=UserWarning,
+        stacklevel=2,
+    )
 
 __all__ = ["AMI", "AMIDataset"]

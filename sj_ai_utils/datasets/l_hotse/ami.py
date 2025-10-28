@@ -25,7 +25,7 @@ class AMI:
         )
 
     def __load_set(
-        self, mic: str, set_name: str, sr: int, task: tuple[Task]
+        self, mic: str, set_name: str, sr: int, task: tuple[Task, ...]
     ) -> LHotseDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out / f"ami-{mic}_recordings_{set_name}.jsonl.gz"
@@ -36,31 +36,34 @@ class AMI:
         return LHotseDataset(recording_set, supervision_set, sr=sr, task=task)
 
     def load_train_ihm(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
         return self.__load_set("ihm", "train", sr=sr, task=task)
 
     def load_dev_ihm(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
         return self.__load_set("ihm", "dev", sr=sr, task=task)
 
     def load_test_ihm(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
         return self.__load_set("ihm", "test", sr=sr, task=task)
 
     def load_train_sdm(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
         return self.__load_set("sdm", "train", sr=sr, task=task)
 
     def load_dev_sdm(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
         return self.__load_set("sdm", "dev", sr=sr, task=task)
 
     def load_test_sdm(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
         return self.__load_set("sdm", "test", sr=sr, task=task)
+
+
+__all__ = ["AMI"]

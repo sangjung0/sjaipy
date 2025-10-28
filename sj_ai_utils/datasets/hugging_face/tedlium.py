@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import warnings
 import numpy as np
 
 from typing_extensions import override
@@ -30,17 +31,20 @@ class TedliumDataset(HuggingFaceDataset):
         print("[WARN] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
         self._ignore_set = ignore_set
 
+    @HuggingFaceDataset.args.getter
     @override
-    def _get_construct_args(self):
-        args = super()._get_construct_args()
-        args["ignore_set"] = self._ignore_set
-        return args
+    def args(self):
+        return {
+            **super().args,
+            "ignore_set": self._ignore_set,
+        }
 
     @override
-    def get_item(self, idx: int) -> tuple[str, np.ndarray, str]:
+    def get(self, idx: int) -> tuple[str, np.ndarray, str]:
         data = self._dataset[idx]
         _id = normalize_text_only_en(data["id"])[-255:]
-        audio = data["audio"]["array"].astype(np.float32)
+        audio = data["audio"]["array"]
+        audio = self._resample_audio(audio).astype(np.float32)
 
         result = {}
         if "asr" in self.task:
@@ -56,7 +60,7 @@ class TedliumDataset(HuggingFaceDataset):
                 )
             result["diarization"] = diarization
 
-        return Sample(_id, audio, result)
+        return Sample(id=_id, audio=audio, _Y=result)
 
 
 class Tedlium(DatasetLoader):
@@ -71,7 +75,7 @@ class Tedlium(DatasetLoader):
         self,
         config_name: str = DEFAULT_CONFIG_NAME,
         sr: int = DEFAULT_SAMPLE_RATE,
-        task: tuple[Task] = DEFAULT_TASK,
+        task: tuple[Task, ...] = DEFAULT_TASK,
         ignore_set: set[str] = DEFAULT_IGNORE_SET,
         **kwargs,
     ):
@@ -84,7 +88,7 @@ class Tedlium(DatasetLoader):
         self,
         config_name: str = DEFAULT_CONFIG_NAME,
         sr: int = DEFAULT_SAMPLE_RATE,
-        task: tuple[Task] = DEFAULT_TASK,
+        task: tuple[Task, ...] = DEFAULT_TASK,
         ignore_set: set[str] = DEFAULT_IGNORE_SET,
         **kwargs,
     ):
@@ -97,13 +101,21 @@ class Tedlium(DatasetLoader):
         self,
         config_name: str = DEFAULT_CONFIG_NAME,
         sr: int = DEFAULT_SAMPLE_RATE,
-        task: tuple[Task] = DEFAULT_TASK,
+        task: tuple[Task, ...] = DEFAULT_TASK,
         ignore_set: set[str] = DEFAULT_IGNORE_SET,
         **kwargs,
     ):
         return TedliumDataset(
             super().load(config_name, "test", **kwargs), sr, task, ignore_set
         )
+
+
+if __name__ != "__main__":
+    warnings.warn(
+        "[WARN] TedliumDataset 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.",
+        category=UserWarning,
+        stacklevel=2,
+    )
 
 
 __all__ = ["Tedlium", "TedliumDataset"]

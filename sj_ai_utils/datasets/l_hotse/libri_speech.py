@@ -1,3 +1,5 @@
+import warnings
+
 from pathlib import Path
 from lhotse import RecordingSet, SupervisionSet
 from lhotse.recipes.librispeech import download_librispeech, prepare_librispeech
@@ -35,43 +37,46 @@ class LibriSpeech:
         return LHotseDataset(recording_set, supervision_set, sr=sr, task=task)
 
     def load_train_clean_100(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
-        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
         return self.__load_set("train-clean-100", sr=sr, task=task)
 
     def load_train_clean_360(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
-        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
         return self.__load_set("train-clean-360", sr=sr, task=task)
 
     def load_train_other_500(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
-        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
         return self.__load_set("train-other-500", sr=sr, task=task)
 
     def load_dev_clean(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
-        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
         return self.__load_set("dev-clean", sr=sr, task=task)
 
     def load_dev_other(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
-        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
         return self.__load_set("dev-other", sr=sr, task=task)
 
     def load_test_clean(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
-        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
         return self.__load_set("test-clean", sr=sr, task=task)
 
     def load_test_other(
-        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task] = DEFAULT_TASK
+        self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
     ) -> LHotseDataset:
-        print("[INFO] 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.")
         return self.__load_set("test-other", sr=sr, task=task)
+
+
+if __name__ != "__main__":
+    warnings.warn(
+        "[INFO] LibriSpeech 오디오가 연속적이지 않고 세그먼트로 나눠져 있음.",
+        category=UserWarning,
+        stacklevel=2,
+    )
+
+__all__ = ["LibriSpeech"]

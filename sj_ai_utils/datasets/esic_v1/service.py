@@ -49,11 +49,12 @@ def select_file_from_dir(dir: Path, file_type: str) -> Path:
     return file_path
 
 
-def search_dirs(source: Path, excludes: Container[str] = []) -> list[Path]:
+def search_dirs(source: Path, excludes: Container[str] | None = None) -> list[Path]:
     if not source.exists():
         raise FileNotFoundError(f"Source path {source} does not exist.")
     if not source.is_dir():
         raise ValueError(f"Expected a directory for source, but got a file: {source}")
+    excludes = excludes or set()
 
     data_dirs = []
     for dirpath in (p for p in source.rglob("*") if p.is_dir()):

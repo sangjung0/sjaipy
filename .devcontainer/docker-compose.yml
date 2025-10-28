@@ -1,0 +1,80 @@
+name: ${CONTAINER_NAME}
+services:
+    dev:
+        shm_size: 16gb
+        build:
+            context: ..
+            dockerfile: .devcontainer/Dockerfile
+            args:
+                CONTAINER_USER: ${CONTAINER_USER}
+                CONTAINER_UID: ${CONTAINER_UID}
+                CONTAINER_HOME: ${CONTAINER_HOME}
+                CONTAINER_WORK_DIR: ${CONTAINER_WORK_DIR}
+                CONTAINER_UV_GROUP: ${CONTAINER_UV_GROUP}
+        environment:
+            CONTAINER_USER: ${CONTAINER_USER}
+            CONTAINER_UID: ${CONTAINER_UID}
+            CONTAINER_HOME: ${CONTAINER_HOME}
+            CONTAINER_WORK_DIR: ${CONTAINER_WORK_DIR}
+            CONTAINER_UV_GROUP: ${CONTAINER_UV_GROUP}
+            TZ: ${TZ}
+        volumes:
+            - ../:${CONTAINER_WORK_DIR}
+            - venv:${CONTAINER_WORK_DIR}/.venv
+
+            - huggingface_cache:${CONTAINER_HOME}/.cache/huggingface
+
+            # dataset
+            - datasets:${CONTAINER_WORK_DIR}/.datasets:ro
+            - datasets_ami:${CONTAINER_WORK_DIR}/.datasets/ami:rw
+            - datasets_tedlium:${CONTAINER_WORK_DIR}/.datasets/tedlium:rw
+            - datasets_vox_populi:${CONTAINER_WORK_DIR}/.datasets/vox_populi:rw
+            - datasets_libri_speech:${CONTAINER_WORK_DIR}/.datasets/libri_speech:rw
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: ["${CONTAINER_GPU_ID}"]
+                          capabilities: [gpu]
+        command: ["tail", "-f", "/dev/null"]
+
+volumes:
+    venv:
+        driver: local
+    huggingface_cache:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${CONTAINER_VOLUME}/cache/huggingface
+    datasets:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${CONTAINER_VOLUME}/datasets
+    datasets_ami:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${CONTAINER_VOLUME}/datasets/ami
+    datasets_tedlium:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${CONTAINER_VOLUME}/datasets/tedlium
+    datasets_vox_populi:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${CONTAINER_VOLUME}/datasets/vox_populi
+    datasets_libri_speech:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${CONTAINER_VOLUME}/datasets/libri_speech

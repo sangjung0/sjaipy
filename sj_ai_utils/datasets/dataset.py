@@ -26,6 +26,21 @@ class Sample:
             raise AttributeError("Diarization label is not available in this sample")
         return self._Y["diarization"]
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "audio": self.audio.tolist(),
+            "_Y": self._Y,
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "Sample":
+        return Sample(
+            id=data["id"],
+            audio=np.array(data["audio"]),
+            _Y=data["_Y"],
+        )
+
 
 class Dataset(ABC):
     def __init__(self, sr: int, task: tuple[Task, ...] = ("asr",)):
@@ -206,7 +221,8 @@ class ConcatDataset(Dataset):
         return {
             **super().to_dict(),
             "datasets": [ds.to_dict() for ds in self._datasets],
-            "class_name": [ds.__class__.__name__ for ds in self._datasets],
+            "module": [ds.__class__.__module__ for ds in self._datasets],
+            "qualname": [ds.__class__.__qualname__ for ds in self._datasets],
         }
 
     @override
@@ -261,11 +277,24 @@ class ConcatDataset(Dataset):
     @staticmethod
     @override
     def from_dict(data: dict) -> Self:
+        import sys
+        from importlib import import_module
+        from functools import reduce
+
+        datasets = []
+        for ds, module, qual in zip(data["datasets"], data["module"], data["qualname"]):
+            if module in ("__main__", "__mp_main__"):
+                m = sys.modules[module]
+            else:
+                m = import_module(module)
+
+            T = reduce(getattr, qual.split("."), m)
+            if not issubclass(T, Dataset):
+                raise TypeError(f"{T} is not a subclass of Dataset")
+            datasets.append(T.from_dict(ds))
+
         return ConcatDataset(
-            [
-                globals()[class_name].from_dict(ds)
-                for ds, class_name in zip(data["datasets"], data["class_name"])
-            ],
+            datasets=datasets,
             sr=data["sr"],
             task=tuple(data["task"]),
         )

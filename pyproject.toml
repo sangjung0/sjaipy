@@ -16,3 +16,12 @@ dependencies = [
     "torchaudio>=2.9.0",
     "torchvision>=0.24.0",
 ]
+
+[dependency-groups]
+test = [
+    "pytest>=8.4.2",
+    "pytest-dotenv>=0.5.2",
+]
+
+[tool.pytest.ini_options]
+env_files=[".env"]

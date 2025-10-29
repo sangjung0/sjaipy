@@ -24,3 +24,6 @@ test = [
 
 [tool.pytest.ini_options]
 env_files=[".env"]
+
+[tool.setuptools]
+packages = ["sj_ai_utils"]

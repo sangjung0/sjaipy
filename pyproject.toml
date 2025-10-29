@@ -1,9 +1,9 @@
 [project]
-name = "dev"
+name = "ai-utils"
 version = "0.1.0"
-description = "Add your description here"
+description = "Custom AI utilities"
 readme = "README.md"
-requires-python = "==3.10.18"
+requires-python = "==3.10.*"
 dependencies = [
     "datasets==3.6.0",
     "faster-whisper==1.2.0",
@@ -11,7 +11,6 @@ dependencies = [
     "lhotse>=1.31.1",
     "librosa>=0.11.0",
     "numpy>=2.2.6",
-    "scipy>=1.15.3",
     "torch>=2.9.0",
     "torchaudio>=2.9.0",
     "torchvision>=0.24.0",

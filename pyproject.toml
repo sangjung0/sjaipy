@@ -1,5 +1,5 @@
 [project]
-name = "ai-utils"
+name = "sjaipy"
 version = "0.1.0"
 description = "Custom AI utilities"
 readme = "README.md"
@@ -14,10 +14,16 @@ dependencies = [
     "torch>=2.9.0",
     "torchaudio>=2.9.0",
     "torchvision>=0.24.0",
-    "python-utils @ file:${PROJECT_ROOT}/modules/python-utils",
+    "sjpy @ file:${PROJECT_ROOT}/modules/sjpy"
 ]
 
 [dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "ipywidgets>=8.1.7",
+    "jupyterlab>=4.4.10",
+    "notebook>=7.4.7",
+]
 test = [
     "pytest>=8.4.2",
     "pytest-dotenv>=0.5.2",
@@ -26,5 +32,6 @@ test = [
 [tool.pytest.ini_options]
 env_files=[".env"]
 
-[tool.setuptools]
-packages = ["sj_ai_utils"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sjaipy*"]

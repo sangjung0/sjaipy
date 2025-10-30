@@ -4,8 +4,8 @@ import numpy as np
 from typing_extensions import override
 from typing import Sequence
 
-from sj_ai_utils.datasets import Sample, Dataset
-from sj_ai_utils.datasets.dataset import ConcatDataset
+from sjaipy.datasets import Sample, Dataset
+from sjaipy.datasets.dataset import ConcatDataset
 
 
 # dummy

@@ -1,0 +1,3 @@
+[submodule "modules/sjpy"]
+	path = modules/sjpy
+	url = https://github.com/sangjung0/sjpy.git

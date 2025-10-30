@@ -1,12 +1,12 @@
 <div align="center">
-  <h1> AI Utils </h1>
+  <h1> sjaipy </h1>
 
 [sangjung0](https://github.com/sangjung0)
 
   <br>
 
-<a href="https://github.com/sangjung0/ai-utils/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=sangjung0/ai-utils" />
+<a href="https://github.com/sangjung0/sjaipy/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=sangjung0/sjaipy" />
 </a>
 
   <br>

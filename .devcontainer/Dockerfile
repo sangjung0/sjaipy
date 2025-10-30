@@ -16,7 +16,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # LOAD SCRIPT
-COPY .devcontainer/sh-utils /tmp/scripts
+COPY .devcontainer/sjsh /tmp/scripts
 RUN chmod -R +x /tmp/scripts/*.sh
 
 # ADD USER AND SETUP ZSH
@@ -34,6 +34,7 @@ RUN sudo -u ${CONTAINER_USER} -H env PATH="${CONTAINER_HOME}/.local/bin:$PATH"
 ARG CONTAINER_WORK_DIR
 WORKDIR ${CONTAINER_WORK_DIR}
 COPY pyproject.toml uv.lock ${CONTAINER_WORK_DIR}/
+COPY modules/ ${CONTAINER_WORK_DIR}/modules/
 RUN install -d -o ${CONTAINER_UID} -g ${CONTAINER_UID} ${CONTAINER_WORK_DIR}/.venv ${CONTAINER_HOME}
 
 ## SYNC UV

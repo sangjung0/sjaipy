@@ -14,7 +14,7 @@ dependencies = [
     "torch>=2.9.0",
     "torchaudio>=2.9.0",
     "torchvision>=0.24.0",
-    "sjpy @ file:${PROJECT_ROOT}/modules/sjpy"
+    "sjpy"
 ]
 
 [dependency-groups]
@@ -35,3 +35,6 @@ env_files=[".env"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["sjaipy*"]
+
+[tool.uv.sources]
+sjpy = {path = "modules/sjpy", editable = true}

@@ -3,61 +3,6 @@ revision = 3
 requires-python = "==3.10.*"
 
 [[package]]
-name = "ai-utils"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "datasets" },
-    { name = "faster-whisper" },
-    { name = "ffmpeg-python" },
-    { name = "lhotse" },
-    { name = "librosa" },
-    { name = "numpy" },
-    { name = "sjpy" },
-    { name = "torch" },
-    { name = "torchaudio" },
-    { name = "torchvision" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "ipykernel" },
-    { name = "ipywidgets" },
-    { name = "jupyterlab" },
-    { name = "notebook" },
-]
-test = [
-    { name = "pytest" },
-    { name = "pytest-dotenv" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "datasets", specifier = "==3.6.0" },
-    { name = "faster-whisper", specifier = "==1.2.0" },
-    { name = "ffmpeg-python", specifier = ">=0.2.0" },
-    { name = "lhotse", specifier = ">=1.31.1" },
-    { name = "librosa", specifier = ">=0.11.0" },
-    { name = "numpy", specifier = ">=2.2.6" },
-    { name = "sjpy", directory = "modules/sjpy" },
-    { name = "torch", specifier = ">=2.9.0" },
-    { name = "torchaudio", specifier = ">=2.9.0" },
-    { name = "torchvision", specifier = ">=0.24.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "ipykernel", specifier = ">=7.1.0" },
-    { name = "ipywidgets", specifier = ">=8.1.7" },
-    { name = "jupyterlab", specifier = ">=4.4.10" },
-    { name = "notebook", specifier = ">=7.4.7" },
-]
-test = [
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pytest-dotenv", specifier = ">=0.5.2" },
-]
-
-[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2162,9 +2107,64 @@ wheels = [
 ]
 
 [[package]]
+name = "sjaipy"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "datasets" },
+    { name = "faster-whisper" },
+    { name = "ffmpeg-python" },
+    { name = "lhotse" },
+    { name = "librosa" },
+    { name = "numpy" },
+    { name = "sjpy" },
+    { name = "torch" },
+    { name = "torchaudio" },
+    { name = "torchvision" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "ipykernel" },
+    { name = "ipywidgets" },
+    { name = "jupyterlab" },
+    { name = "notebook" },
+]
+test = [
+    { name = "pytest" },
+    { name = "pytest-dotenv" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "datasets", specifier = "==3.6.0" },
+    { name = "faster-whisper", specifier = "==1.2.0" },
+    { name = "ffmpeg-python", specifier = ">=0.2.0" },
+    { name = "lhotse", specifier = ">=1.31.1" },
+    { name = "librosa", specifier = ">=0.11.0" },
+    { name = "numpy", specifier = ">=2.2.6" },
+    { name = "sjpy", editable = "modules/sjpy" },
+    { name = "torch", specifier = ">=2.9.0" },
+    { name = "torchaudio", specifier = ">=2.9.0" },
+    { name = "torchvision", specifier = ">=0.24.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "ipykernel", specifier = ">=7.1.0" },
+    { name = "ipywidgets", specifier = ">=8.1.7" },
+    { name = "jupyterlab", specifier = ">=4.4.10" },
+    { name = "notebook", specifier = ">=7.4.7" },
+]
+test = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-dotenv", specifier = ">=0.5.2" },
+]
+
+[[package]]
 name = "sjpy"
 version = "0.1.0"
-source = { directory = "modules/sjpy" }
+source = { editable = "modules/sjpy" }
 dependencies = [
     { name = "ffmpeg-python" },
     { name = "librosa" },

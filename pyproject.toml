@@ -37,4 +37,4 @@ where = ["."]
 include = ["sjaipy*"]
 
 [tool.uv.sources]
-sjpy = {path = "modules/sjpy", editable = true}
+# sjpy = {path = "modules/sjpy", editable = true}

@@ -45,13 +45,13 @@ RUN sudo -u ${CONTAINER_USER} -H bash -lc "/tmp/scripts/sync_uv.sh ${CONTAINER_W
 ## CLEANUP
 RUN rm -f ${CONTAINER_WORK_DIR}/pyproject.toml ${CONTAINER_WORK_DIR}/uv.lock /tmp/* || true
 
-# FINALIZE
-USER ${CONTAINER_USER}
-ENV VIRTUAL_ENV="${CONTAINER_WORK_DIR}/.venv"
-ENV PATH="${CONTAINER_WORK_DIR}/.venv/bin:${PATH}"
-
 # INSTALL ADDITIONAL DEPENDENCIES
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     sctk \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
+
+# FINALIZE
+USER ${CONTAINER_USER}
+ENV VIRTUAL_ENV="${CONTAINER_WORK_DIR}/.venv"
+ENV PATH="${CONTAINER_WORK_DIR}/.venv/bin:${PATH}"

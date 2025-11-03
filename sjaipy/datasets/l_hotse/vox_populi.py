@@ -33,7 +33,7 @@ class VoxPopuli:
             self.__prepare_out
             / f"voxpopuli-{subset}-{lang}_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset(recording_set, supervision_set, sr, task)
+        return LHotseDataset.from_recording_supervision(recording_set, supervision_set, sr, task)
 
     def load_train_asr_en(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK

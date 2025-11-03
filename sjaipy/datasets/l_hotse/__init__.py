@@ -4,5 +4,6 @@ from sjaipy.datasets.l_hotse.ami import AMI
 from sjaipy.datasets.l_hotse.libri_speech import LibriSpeech
 from sjaipy.datasets.l_hotse.tedlium import Tedlium
 from sjaipy.datasets.l_hotse.vox_populi import VoxPopuli
+from sjaipy.datasets.l_hotse.l_hotse_dataset import LHotseDataset
 
-__all__ = ["AMI", "LibriSpeech", "Tedlium", "VoxPopuli"]
+__all__ = ["AMI", "LibriSpeech", "Tedlium", "VoxPopuli", "LHotseDataset"]

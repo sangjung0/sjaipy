@@ -33,7 +33,9 @@ class AMI:
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"ami-{mic}_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset(recording_set, supervision_set, sr=sr, task=task)
+        return LHotseDataset.from_recording_supervision(
+            recording_set, supervision_set, sr=sr, task=task
+        )
 
     def load_train_ihm(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK

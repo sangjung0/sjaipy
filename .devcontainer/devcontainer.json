@@ -6,7 +6,7 @@
     "postCreateCommand": "bash /workspaces/dev/.devcontainer/sjsh/LIA/post_create_command.sh",
 
     // for linux container
-    // "initializeCommand": "[ ! -d ${localWorkspaceFolder}/.devcontainer/sjsh ] && git clone --branch v0.0.3 https://github.com/sangjung0/sjsh.git ${localWorkspaceFolder}/.devcontainer/sjsh",
+    // "initializeCommand": "[ ! -d ${localWorkspaceFolder}/.devcontainer/sjsh ] && git clone --branch v0.0.3 https://github.com/sangjung0/sjsh.git ${localWorkspaceFolder}/.devcontainer/sjsh || true",
 
     // for windows container
     "initializeCommand": "cd /d ${localWorkspaceFolder} && if not exist .devcontainer/sjsh git clone --branch v0.0.3 https://github.com/sangjung0/sjsh.git .devcontainer/sjsh",

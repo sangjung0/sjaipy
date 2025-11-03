@@ -33,6 +33,9 @@
         "**/log",
         "**/.venv",
     ],
+    "python.analysis.extraPaths": [
+        "./modules/sjpy",
+    ],
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
     "python.envFile": "${workspaceFolder}/.env",
     "jupyter.notebookFileRoot": "${workspaceFolder}",
@@ -62,5 +65,7 @@
         "files.trimTrailingWhitespace": false,
     },
     "cSpell.words": [
+        "ndarray",
+        "Tedlium"
     ]
 }

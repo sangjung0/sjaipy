@@ -31,8 +31,8 @@ class Sample:
     def to_dict(self) -> dict:
         return {
             "id": self.id,
-            "audio": self.load_audio.tolist(),
-            "_Y": self.Y,
+            "audio": self.audio.tolist(),
+            "Y": self.Y,
         }
 
     @staticmethod
@@ -40,7 +40,7 @@ class Sample:
         return Sample(
             id=data["id"],
             load_audio=np.array(data["audio"]),
-            Y=data["_Y"],
+            Y=data["Y"],
         )
 
 

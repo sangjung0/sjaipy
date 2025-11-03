@@ -34,7 +34,9 @@ class LibriSpeech:
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"librispeech_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset(recording_set, supervision_set, sr=sr, task=task)
+        return LHotseDataset.from_recording_supervision(
+            recording_set, supervision_set, sr=sr, task=task
+        )
 
     def load_train_clean_100(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK

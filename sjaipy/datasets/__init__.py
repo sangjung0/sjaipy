@@ -1,5 +1,5 @@
 # sjaipy/datasets/__init__.py
 
-from sjaipy.datasets.dataset import Dataset, Sample
+from sjaipy.datasets.dataset import Sample, Dataset, Task, ConcatDataset
 
-__all__ = ["Dataset", "Sample"]
+__all__ = ["Dataset", "Sample", "Task", "ConcatDataset"]

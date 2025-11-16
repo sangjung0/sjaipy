@@ -31,7 +31,9 @@ class Tedlium:
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"tedlium_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset(recording_set, supervision_set, sr, task)
+        return LHotseDataset.from_recording_supervision(
+            recording_set, supervision_set, sr, task
+        )
 
     def load_train(
         self,

@@ -7,6 +7,8 @@ from sjaipy.datasets.hugging_face.dataset_loader import DatasetLoader
 from sjaipy.datasets.hugging_face.zeroth_korean import ZerothKorean
 from sjaipy.datasets.hugging_face.ksponspeech import KSPonSpeech
 
+from sjaipy.datasets.hugging_face.hugging_face_dataset import HuggingFaceDataset
+
 __all__ = [
     "AMI",
     "Tedlium",
@@ -14,4 +16,5 @@ __all__ = [
     "DatasetLoader",
     "ZerothKorean",
     "KSPonSpeech",
+    "HuggingFaceDataset",
 ]

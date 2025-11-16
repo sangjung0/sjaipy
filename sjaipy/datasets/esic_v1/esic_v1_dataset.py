@@ -5,7 +5,7 @@ from pathlib import Path
 from typing_extensions import override, Self
 from typing import Sequence
 
-from sjpy.audio import load_audio_from_mp4
+from sjpy.audio import load_from_mp4_file
 from sjpy.string import normalize_text_only_en
 from sjpy.file.json import JsonSaver, load_json
 from sjaipy.datasets.dataset import Dataset, Sample
@@ -60,10 +60,13 @@ class ESICv1Dataset(Dataset):
     @override
     def get(self, idx: int) -> Sample:
         x, y = self._X[idx], self._Y[idx]
-        audio = load_audio_from_mp4(x, self._sr)[0]
+
+        def load_audio() -> np.ndarray:
+            return load_from_mp4_file(x, self._sr)[0]
+
         txt = y.read_text(encoding="utf-8")
         _id = normalize_text_only_en(str(Path(*x.parts[-3:-1])))[-255:]
-        return Sample(id=_id, audio=audio, _Y={"asr": txt})
+        return Sample(id=_id, load_audio=load_audio, Y={"asr": txt})
 
     def save(self, path: Path, description="ESICv1Dataset"):
         JsonSaver(description).save(self.to_dict(), path)

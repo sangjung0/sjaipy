@@ -62,7 +62,7 @@ class ESICv1Dataset(Dataset):
         x, y = self._X[idx], self._Y[idx]
 
         def load_audio() -> np.ndarray:
-            return load_audio_from_mp4(x, self._sr)[0]
+            return load_from_mp4_file(x, self._sr)[0]
 
         txt = y.read_text(encoding="utf-8")
         _id = normalize_text_only_en(str(Path(*x.parts[-3:-1])))[-255:]

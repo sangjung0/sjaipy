@@ -22,9 +22,10 @@ services:
             - ../:${CONTAINER_WORK_DIR}
             - venv:${CONTAINER_WORK_DIR}/.venv
 
+            - uv_cache:${CONTAINER_HOME}/.cache/uv
             - huggingface_cache:${CONTAINER_HOME}/.cache/huggingface
 
-            # dataset
+            # datasets
             - datasets:${CONTAINER_WORK_DIR}/.datasets:ro
             - datasets_ami:${CONTAINER_WORK_DIR}/.datasets/ami:rw
             - datasets_tedlium:${CONTAINER_WORK_DIR}/.datasets/tedlium:rw
@@ -42,6 +43,12 @@ services:
 volumes:
     venv:
         driver: local
+    uv_cache:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${CONTAINER_VOLUME}/cache/uv
     huggingface_cache:
         driver: local
         driver_opts:

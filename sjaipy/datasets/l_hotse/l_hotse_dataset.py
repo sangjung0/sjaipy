@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from lhotse import RecordingSet, SupervisionSet
+from lhotse import RecordingSet, SupervisionSet, SupervisionSegment, Recording
 from typing import Sequence
 from typing_extensions import override, Self
 
@@ -16,29 +16,23 @@ if TYPE_CHECKING:
 class LHotseDataset(Dataset):
     def __init__(
         self,
-        recording_set: RecordingSet,
-        supervision_set: SupervisionSet,
+        recordings: list[tuple[Recording, int]],
+        segments: list[list[SupervisionSegment]],
         sr: int,
         task: tuple[Task, ...],
-        X: list[tuple[int, int]] = [],
     ):
+        if len(recordings) != len(segments):
+            raise ValueError("Mismatched lengths between recordings and segments")
+
         super().__init__(sr, task)
-        self.recording_set = recording_set.resample(sampling_rate=sr)
-        self.supervision_set = supervision_set
-        if not X:
-            self.__X = [
-                (c, idx)
-                for idx in range(len(self.recording_set))
-                for c in self.recording_set[idx].channel_ids
-            ]
-        else:
-            self.__X = X
+        self.recordings = recordings
+        self.segments = segments
 
     @Dataset.sr.setter
     @override
     def sr(self, value: int):
         if value != self._sr:
-            self.recording_set = self.recording_set.resample(sampling_rate=value)
+            self.recordings = [(rec.resample(value), ch) for rec, ch in self.recordings]
             self._sr = value
 
     @Dataset.args.getter
@@ -46,70 +40,117 @@ class LHotseDataset(Dataset):
     def args(self) -> dict:
         return {
             **super().args,
-            "recording_set": self.recording_set,
-            "supervision_set": self.supervision_set,
-            "X": self.__X,
+            "recordings": self.recordings,
+            "segments": self.segments,
         }
 
     @Dataset.length.getter
     @override
     def length(self) -> int:
-        return len(self.__X)
+        return len(self.recordings)
 
     @override
     def to_dict(self) -> dict:
         return {
             **super().to_dict(),
-            "recording_set": self.recording_set.to_dicts(),
-            "supervision_set": self.supervision_set.to_dicts(),
-            "X": self.__X,
+            "recordings": [(r.to_dict(), ch) for r, ch in self.recordings],
+            "segments": [[s.to_dict() for s in ss] for ss in self.segments],
         }
 
     @override
     def select(self, indices: Sequence[int]) -> "LHotseDataset":
-        args = self.args
-        args["X"] = [self.__X[i] for i in indices]
-        return LHotseDataset(**args)
+        return LHotseDataset(
+            **{
+                **self.args,
+                "recordings": [self.recordings[i] for i in indices],
+                "segments": [self.segments[i] for i in indices],
+            }
+        )
 
     @override
     def slice(
         self, start: int | None = None, stop: int | None = None, step: int | None = None
     ) -> Self:
-        args = self.args
-        args["X"] = self.__X[start:stop:step]
-        return LHotseDataset(**args)
+        return LHotseDataset(
+            **{
+                **self.args,
+                "recordings": self.recordings[start:stop:step],
+                "segments": self.segments[start:stop:step],
+            }
+        )
 
     @override
     def get(self, idx: int):
-        channel, r_idx = self.__X[idx]
-        rec = self.recording_set[r_idx]
+        rec, channel = self.recordings[idx]
         rid = rec.id
-        wav = rec.load_audio(channels=channel)
-        assert len(wav) == 1, "wav must be mono"
 
-        segs = [
-            s
-            for s in self.supervision_set
-            if s.recording_id == rid
-            and (
-                s.channel == channel
-                or (isinstance(s.channel, list) and channel in s.channel)
-            )
-        ]
-        segs.sort(key=lambda s: s.start)
+        def load_audio() -> np.ndarray:
+            wav = rec.load_audio(channels=channel)
+            assert len(wav) == 1, "wav must be mono"
+            return wav[0]
+
+        segments = self.segments[idx]
         result = {}
         if "asr" in self.task:
-            result["asr"] = " ".join([s.text for s in segs])
+            result["asr"] = " ".join([s.text for s in segments])
         if "diarization" in self.task:
             result["diarization"] = [
-                {"start": s.start, "end": s.end, "label": s.speaker} for s in segs
+                {"start": s.start, "end": s.end, "label": s.speaker} for s in segments
             ]
 
         return Sample(
             id=(rid + "_" + str(channel))[-255:],
-            audio=wav[0],
-            _Y=result,
+            load_audio=load_audio,
+            Y=result,
         )
+
+    @staticmethod
+    def from_recording_supervision(
+        recording_set: RecordingSet,
+        supervision_set: SupervisionSet,
+        sr: int,
+        task: tuple[Task, ...],
+    ) -> "LHotseDataset":
+        recordings = []
+        segments = []
+
+        for rec in recording_set:
+            rec = rec if rec.sampling_rate == sr else rec.resample(sr)
+            for c in rec.channel_ids:
+                rec_segments = list(
+                    supervision_set.find(recording_id=rec.id, channel=c)
+                )
+                # if len(rec_segments) == 0:
+                #     continue
+                recordings.append((rec, c))
+                segments.append(rec_segments)
+
+        return LHotseDataset(
+            recordings=recordings,
+            segments=segments,
+            sr=sr,
+            task=task,
+        )
+
+    # def _generate_metadata(self) -> list[_Metadata]:
+    #     metadata = {
+    #         (rec.id, c): _Metadata(rid=rec.id, channel=c, index=idx, segments=[])
+    #         for idx, rec in enumerate(self.recording_set)
+    #         for c in rec.channel_ids
+    #     }
+
+    #     for s in self.supervision_set:
+    #         rid = s.recording_id
+    #         if isinstance(s.channel, list):
+    #             for c in s.channel:
+    #                 metadata[(rid, c)].segments.append(s)
+    #         else:
+    #             metadata[(rid, s.channel)].segments.append(s)
+
+    #     for key in metadata:
+    #         metadata[key].segments.sort(key=lambda s: s.start)
+
+    #     return [value for value in metadata.values()]
 
     @override
     def _sample(
@@ -120,20 +161,23 @@ class LHotseDataset(Dataset):
     ) -> "LHotseDataset":
         if rng is None or size == len(self) - start:
             return self.slice(start=start, stop=start + size)
-        else:
-            args = self.args
-            args["X"] = rng.choice(self.__X[start:], size=size, replace=False)
-            return LHotseDataset(**args)
+        idxs = rng.choice(np.arange(start, len(self)), size=size, replace=False)
+        recs = [self.recordings[i] for i in idxs]
+        segs = [self.segments[i] for i in idxs]
+        return LHotseDataset(
+            **{**self.args, "recordings": list(recs), "segments": list(segs)}
+        )
 
     @staticmethod
     @override
     def from_dict(data: dict) -> Self:
         return LHotseDataset(
-            RecordingSet.from_dicts(data["recording_set"]),
-            SupervisionSet.from_dicts(data["supervision_set"]),
+            recordings=[(Recording.from_dict(r), ch) for (r, ch) in data["recordings"]],
+            segments=[
+                [SupervisionSegment.from_dict(s) for s in ss] for ss in data["segments"]
+            ],
             sr=data["sr"],
             task=tuple(data["task"]),
-            X=data["X"],
         )
 
 

@@ -27,8 +27,10 @@ class AMIDataset(HuggingFaceDataset):
     def get(self, idx: int) -> tuple[str, np.ndarray, str]:
         data = self._dataset[idx]
         _id = normalize_text_only_en(data["audio_id"])[-255:]
-        audio = data["audio"]["array"]
-        audio = self._resample_audio(audio).astype(np.float32)
+
+        def load_audio() -> np.ndarray:
+            return self._resample_audio(data["audio"]["array"]).astype(np.float32)
+
         result = {}
         if "asr" in self.task:
             result["asr"] = data["text"]
@@ -40,7 +42,7 @@ class AMIDataset(HuggingFaceDataset):
                     "label": data["speaker_id"],
                 }
             ]
-        return Sample(id=_id, audio=audio, _Y=result)
+        return Sample(id=_id, load_audio=load_audio, Y=result)
 
 
 class AMI(DatasetLoader):

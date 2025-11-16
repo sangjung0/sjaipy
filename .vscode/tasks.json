@@ -2,15 +2,36 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "pytest",
+            "label": "pytest: all",
             "type": "shell",
-            "command": "${workspaceFolder}/.venv/bin/python -m pytest -q",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": ["-m", "pytest", "-q", "--durations=0"],
             "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "clear": true
-            }
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+        },
+        {
+            "label": "pytest: pick file",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": ["-m", "pytest", "-q", "--durations=0", "${input:nodeid}"],
+            "problemMatcher": [],
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+        },
+        {
+            "label": "pytest: current file",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": ["-m", "pytest", "-q", "--durations=0", "${relativeFile}"],
+            "problemMatcher": [],
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "nodeid",
+            "type": "promptString",
+            "description": "테스트할 파일/노드ID 입력 (예: tests/unit/test_foo.py 또는 tests/unit/test_foo.py::TestBar::test_baz)",
+            "default": "tests/unit"
         }
     ]
 }

@@ -3,17 +3,17 @@ name = "sjaipy"
 version = "0.1.0"
 description = "Custom AI utilities"
 readme = "README.md"
-requires-python = "==3.10.*"
+requires-python = ">=3.10"
 dependencies = [
     "datasets==3.6.0",
     "faster-whisper==1.2.0",
     "ffmpeg-python>=0.2.0",
     "lhotse>=1.31.1",
     "librosa>=0.11.0",
-    "numpy>=2.2.6",
-    "torch>=2.9.0",
-    "torchaudio>=2.9.0",
-    "torchvision>=0.24.0",
+    "numpy>=1.23",
+    "torch>=2.3.0",
+    "torchaudio>=2.3.0",
+    "torchvision>=0.18.0",
     "sjpy"
 ]
 

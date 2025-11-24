@@ -9,10 +9,14 @@ DEFAULT_SAMPLE_RATE = 16_000
 DEFAULT_TASK = ("asr",)
 
 
+class AMIDataset(LHotseDataset):
+    pass
+
+
 class AMI:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, prepare_path: Path | None = None):
         self.__path = path
-        self.__prepare_out = path / ".prepare"
+        self.__prepare_out = prepare_path or path / ".prepare"
 
     def download(self, mic="ihm", **kwargs) -> Path:
         return download_ami(target_dir=self.__path, mic=mic, **kwargs)
@@ -26,46 +30,46 @@ class AMI:
 
     def __load_set(
         self, mic: str, set_name: str, sr: int, task: tuple[Task, ...]
-    ) -> LHotseDataset:
+    ) -> AMIDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out / f"ami-{mic}_recordings_{set_name}.jsonl.gz"
         )
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"ami-{mic}_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset.from_recording_supervision(
+        return AMIDataset.from_recording_supervision(
             recording_set, supervision_set, sr=sr, task=task
         )
 
     def load_train_ihm(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> AMIDataset:
         return self.__load_set("ihm", "train", sr=sr, task=task)
 
     def load_dev_ihm(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> AMIDataset:
         return self.__load_set("ihm", "dev", sr=sr, task=task)
 
     def load_test_ihm(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> AMIDataset:
         return self.__load_set("ihm", "test", sr=sr, task=task)
 
     def load_train_sdm(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> AMIDataset:
         return self.__load_set("sdm", "train", sr=sr, task=task)
 
     def load_dev_sdm(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> AMIDataset:
         return self.__load_set("sdm", "dev", sr=sr, task=task)
 
     def load_test_sdm(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> AMIDataset:
         return self.__load_set("sdm", "test", sr=sr, task=task)
 
 
-__all__ = ["AMI"]
+__all__ = ["AMI", "AMIDataset"]

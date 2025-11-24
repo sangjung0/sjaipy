@@ -9,10 +9,14 @@ DEFAULT_SAMPLE_RATE = 16_000
 DEFAULT_TASK = ("asr",)
 
 
+class TedliumDataset(LHotseDataset):
+    pass
+
+
 class Tedlium:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, prepare_path: Path | None = None):
         self.__path = path
-        self.__prepare_out = path / ".prepare"
+        self.__prepare_out = prepare_path or path / ".prepare"
 
     def download(self, **kwargs) -> Path:
         return download_tedlium(target_dir=self.__path, **kwargs)
@@ -24,14 +28,14 @@ class Tedlium:
 
     def __load_set(
         self, set_name: str, sr: int, task: tuple[Task, ...]
-    ) -> LHotseDataset:
+    ) -> TedliumDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out / f"tedlium_recordings_{set_name}.jsonl.gz"
         )
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"tedlium_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset.from_recording_supervision(
+        return TedliumDataset.from_recording_supervision(
             recording_set, supervision_set, sr, task
         )
 
@@ -39,18 +43,18 @@ class Tedlium:
         self,
         sr: int = DEFAULT_SAMPLE_RATE,
         task: tuple[Task, ...] = DEFAULT_TASK,
-    ) -> LHotseDataset:
+    ) -> TedliumDataset:
         return self.__load_set("train", sr, task)
 
     def load_dev(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> TedliumDataset:
         return self.__load_set("dev", sr, task)
 
     def load_test(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> TedliumDataset:
         return self.__load_set("test", sr, task)
 
 
-__all__ = ["Tedlium"]
+__all__ = ["Tedlium", "TedliumDataset"]

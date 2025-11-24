@@ -34,6 +34,10 @@ class Dataset(ABC):
     @abstractmethod
     def length(self) -> int: ...
 
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
+
     def __iter__(self) -> Generator[Sample, Any, None]:
         yield from self.iter()
 

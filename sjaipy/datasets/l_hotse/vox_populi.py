@@ -11,10 +11,14 @@ DEFAULT_SAMPLE_RATE = 16_000
 DEFAULT_TASK = ("asr",)
 
 
+class VoxPopuliDataset(LHotseDataset):
+    pass
+
+
 class VoxPopuli:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, prepare_path: Path | None = None):
         self.__path = path
-        self.__prepare_out = path / ".prepare"
+        self.__prepare_out = prepare_path or path / ".prepare"
 
     def download(self, subset="en") -> Path:
         return download_voxpopuli(target_dir=self.__path, subset=subset)
@@ -24,7 +28,7 @@ class VoxPopuli:
 
     def __load_set(
         self, set_name: str, subset: str, lang: str, sr: int, task: tuple[Task, ...]
-    ) -> LHotseDataset:
+    ) -> VoxPopuliDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out
             / f"voxpopuli-{subset}-{lang}_recordings_{set_name}.jsonl.gz"
@@ -33,22 +37,23 @@ class VoxPopuli:
             self.__prepare_out
             / f"voxpopuli-{subset}-{lang}_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset.from_recording_supervision(recording_set, supervision_set, sr, task)
+        return VoxPopuliDataset.from_recording_supervision(
+            recording_set, supervision_set, sr, task
+        )
 
     def load_train_asr_en(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ):
-        print()
+    ) -> VoxPopuliDataset:
         return self.__load_set("train", "asr", "en", sr, task)
 
     def load_dev_asr_en(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ):
+    ) -> VoxPopuliDataset:
         return self.__load_set("dev", "asr", "en", sr, task)
 
     def load_test_asr_en(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ):
+    ) -> VoxPopuliDataset:
         return self.__load_set("test", "asr", "en", sr, task)
 
 
@@ -60,4 +65,4 @@ if __name__ != "__main__":
     )
 
 
-__all__ = ["VoxPopuli"]
+__all__ = ["VoxPopuli", "VoxPopuliDataset"]

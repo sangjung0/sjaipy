@@ -11,10 +11,14 @@ DEFAULT_SAMPLE_RATE = 16_000
 DEFAULT_TASK = ("asr",)
 
 
+class LibriSpeechDataset(LHotseDataset):
+    pass
+
+
 class LibriSpeech:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, prepare_path: Path | None = None):
         self.__path = path
-        self.__prepare_out = path / ".prepare"
+        self.__prepare_out = prepare_path or path / ".prepare"
 
     def download(self, dataset_parts: str = "librispeech", **kwargs) -> Path:
         return download_librispeech(
@@ -27,50 +31,52 @@ class LibriSpeech:
             self.__path / "LibriSpeech", output_dir=self.__prepare_out, **kwargs
         )
 
-    def __load_set(self, set_name: str, sr: int, task=tuple[Task]) -> LHotseDataset:
+    def __load_set(
+        self, set_name: str, sr: int, task=tuple[Task]
+    ) -> LibriSpeechDataset:
         recording_set = RecordingSet.from_file(
             self.__prepare_out / f"librispeech_recordings_{set_name}.jsonl.gz"
         )
         supervision_set = SupervisionSet.from_file(
             self.__prepare_out / f"librispeech_supervisions_{set_name}.jsonl.gz"
         )
-        return LHotseDataset.from_recording_supervision(
+        return LibriSpeechDataset.from_recording_supervision(
             recording_set, supervision_set, sr=sr, task=task
         )
 
     def load_train_clean_100(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> LibriSpeechDataset:
         return self.__load_set("train-clean-100", sr=sr, task=task)
 
     def load_train_clean_360(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> LibriSpeechDataset:
         return self.__load_set("train-clean-360", sr=sr, task=task)
 
     def load_train_other_500(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> LibriSpeechDataset:
         return self.__load_set("train-other-500", sr=sr, task=task)
 
     def load_dev_clean(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> LibriSpeechDataset:
         return self.__load_set("dev-clean", sr=sr, task=task)
 
     def load_dev_other(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> LibriSpeechDataset:
         return self.__load_set("dev-other", sr=sr, task=task)
 
     def load_test_clean(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> LibriSpeechDataset:
         return self.__load_set("test-clean", sr=sr, task=task)
 
     def load_test_other(
         self, sr: int = DEFAULT_SAMPLE_RATE, task: tuple[Task, ...] = DEFAULT_TASK
-    ) -> LHotseDataset:
+    ) -> LibriSpeechDataset:
         return self.__load_set("test-other", sr=sr, task=task)
 
 
@@ -81,4 +87,4 @@ if __name__ != "__main__":
         stacklevel=2,
     )
 
-__all__ = ["LibriSpeech"]
+__all__ = ["LibriSpeech", "LibriSpeechDataset"]

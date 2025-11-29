@@ -1,7 +1,8 @@
 name: ${CONTAINER_NAME}
 services:
-    dev:
+    service:
         shm_size: 16gb
+        user: "${CONTAINER_UID}:${CONTAINER_UID}"
         build:
             context: ..
             dockerfile: .devcontainer/Dockerfile
@@ -9,13 +10,12 @@ services:
                 CONTAINER_USER: ${CONTAINER_USER}
                 CONTAINER_UID: ${CONTAINER_UID}
                 CONTAINER_HOME: ${CONTAINER_HOME}
-                CONTAINER_WORK_DIR: ${CONTAINER_WORK_DIR}
-                CONTAINER_UV_GROUP: ${CONTAINER_UV_GROUP}
         environment:
             CONTAINER_USER: ${CONTAINER_USER}
             CONTAINER_UID: ${CONTAINER_UID}
             CONTAINER_HOME: ${CONTAINER_HOME}
             CONTAINER_WORK_DIR: ${CONTAINER_WORK_DIR}
+            CONTAINER_DATA_DIR: ${CONTAINER_DATA_DIR}
             CONTAINER_UV_GROUP: ${CONTAINER_UV_GROUP}
             TZ: ${TZ}
         volumes:
@@ -25,12 +25,12 @@ services:
             - uv_cache:${CONTAINER_HOME}/.cache/uv
             - huggingface_cache:${CONTAINER_HOME}/.cache/huggingface
 
-            # datasets
-            - datasets:${CONTAINER_WORK_DIR}/.datasets:ro
-            - datasets_ami:${CONTAINER_WORK_DIR}/.datasets/ami:rw
-            - datasets_tedlium:${CONTAINER_WORK_DIR}/.datasets/tedlium:rw
-            - datasets_vox_populi:${CONTAINER_WORK_DIR}/.datasets/vox_populi:rw
-            - datasets_libri_speech:${CONTAINER_WORK_DIR}/.datasets/libri_speech:rw
+            # dataset
+            - datasets:${CONTAINER_DATA_DIR}/.datasets:ro
+            - datasets_ami:${CONTAINER_DATA_DIR}/.datasets/ami:rw
+            - datasets_tedlium:${CONTAINER_DATA_DIR}/.datasets/tedlium:rw
+            - datasets_vox_populi:${CONTAINER_DATA_DIR}/.datasets/vox_populi:rw
+            - datasets_libri_speech:${CONTAINER_DATA_DIR}/.datasets/libri_speech:rw
         deploy:
             resources:
                 reservations:

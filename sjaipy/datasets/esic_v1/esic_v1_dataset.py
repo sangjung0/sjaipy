@@ -5,7 +5,7 @@ from pathlib import Path
 from typing_extensions import override, Self
 from typing import Sequence
 
-from sjpy.audio import load_audio_from_mp4
+from sjpy.audio import load_from_mp4_file
 from sjpy.string import normalize_text_only_en
 from sjpy.file.json import JsonSaver, load_json
 from sjaipy.datasets.dataset import Dataset, Sample

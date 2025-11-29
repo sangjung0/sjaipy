@@ -35,8 +35,3 @@ ENV PATH="${CONTAINER_HOME}/.uv/bin:$PATH"
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     sctk ffmpeg \
     && rm -rf /var/lib/apt/lists/*
-
-# FINALIZE
-USER ${CONTAINER_USER}
-ENV VIRTUAL_ENV="${CONTAINER_WORK_DIR}/.venv"
-ENV PATH="${CONTAINER_WORK_DIR}/.venv/bin:${PATH}"

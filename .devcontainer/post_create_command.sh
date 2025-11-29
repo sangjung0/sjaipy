@@ -17,16 +17,19 @@ elif [[ ! -d "${CONTAINER_WORK_DIR}" ]]; then
     exit 1
 fi
 
-echo "[INFO] step 1/3: change ownership to ${CONTAINER_USER}"
+echo "[INFO] step 1/4: change ownership to ${CONTAINER_USER}"
 sudo bash "${CONTAINER_WORK_DIR}/.devcontainer/sjsh/root/change_owner.sh" "${CONTAINER_USER}" \
     --target "${CONTAINER_HOME}" \
     --target "${CONTAINER_WORK_DIR}:${CONTAINER_WORK_DIR}/.datasets" \
     --target "${CONTAINER_WORK_DIR}/.datasets:${CONTAINER_WORK_DIR}/.datasets/pills:${CONTAINER_WORK_DIR}/.datasets/ILSVRC:${CONTAINER_WORK_DIR}/.datasets/asr-rankformer-datasets"
 
-echo "[INFO] step 2/3: sync uv"
+echo "[INFO] step 2/4: sync uv"
 bash "${CONTAINER_WORK_DIR}/.devcontainer/sjsh/common/wait_for_dir.sh" "${CONTAINER_WORK_DIR}/.venv"
 bash "${CONTAINER_WORK_DIR}/.devcontainer/sjsh/user/sync_uv.sh" "${CONTAINER_WORK_DIR}" "${CONTAINER_UV_GROUP}"
 
-echo "[INFO] step 3/3: setup lhotse"
+echo "[INFO] step 3/4: setup lhotse"
 source "${CONTAINER_WORK_DIR}/.venv/bin/activate"
 lhotse install-sph2pipe
+
+echo "[INFO] step 4/4: link datasets"
+ln -sfn "${CONTAINER_DATA_DIR}/.datasets" "${CONTAINER_WORK_DIR}/.datasets"
